@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_exchangeamountmanagement/screens/addrategroup_screen.dart';
+import 'package:flutter_exchangeamountmanagement/screens/exchangerate_screen.dart';
+import 'package:flutter_exchangeamountmanagement/screens/modifygroupcontent_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -31,15 +34,31 @@ class HomeScreenState extends State<HomeScreen> {
                     )),
                     Row(
                       children: [
+                        /* 兌換倍率資料頁面按鈕 */
                         IconButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const ExchangerateScreen(),
+                                ),
+                              );
+                            },
                             icon: Icon(
                               Icons.currency_exchange,
                               size: 28,
                             )),
                         SizedBox(width: 10),
+                        /* 群組新增頁面按鈕 */
                         IconButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const AddrategroupScreen(),
+                                ),
+                              );
+                            },
                             icon: Icon(
                               Icons.add_to_photos,
                               size: 28,
@@ -144,8 +163,6 @@ class HomeScreenState extends State<HomeScreen> {
                                         style: TextStyle(fontSize: 14),
                                       ),
                                     ),
-                                    // arrow down icon
-                                    Icon(Icons.arrow_drop_down),
                                   ],
                                 ),
                               ),
@@ -202,8 +219,6 @@ class HomeScreenState extends State<HomeScreen> {
                                         style: TextStyle(fontSize: 14),
                                       ),
                                     ),
-                                    // arrow down icon
-                                    Icon(Icons.arrow_drop_down),
                                   ],
                                 ),
                               ),
@@ -214,6 +229,7 @@ class HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
+                /* 灰色格線 */
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
@@ -270,22 +286,28 @@ class HomeScreenState extends State<HomeScreen> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text("幣別"),
-                                  Text("金額"),
+                                  Text("預定日期: 2025-01-01 ~ 2025-06-01"),
                                 ],
                               ),
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text("幣別"),
-                                  Text("金額"),
+                                  Text("目標金額: 10000/100000(10%) JPY"),
                                 ],
                               ),
                             ],
                           ),
                           trailing: IconButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        ModifygroupcontentScreen(
+                                            groupID: index),
+                                  ),
+                                );
+                              },
                               icon: Icon(
                                 Icons.edit,
                                 size: 20,
