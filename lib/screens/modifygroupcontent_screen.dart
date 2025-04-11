@@ -56,6 +56,7 @@ class ModifygroupcontentScreenState
         padding: EdgeInsets.only(left: 15, right: 15),
         child: Column(
           children: [
+            /* 兌換總資訊 */
             Row(
               children: [
                 Expanded(
@@ -96,8 +97,7 @@ class ModifygroupcontentScreenState
                     icon: Icon(Icons.playlist_add))
               ],
             ),
-            SizedBox(
-              height: 500,
+            Expanded(
               child: ListView.builder(
                 itemCount: 10,
                 itemBuilder: (context, index) {
@@ -137,7 +137,7 @@ class ModifygroupcontentScreenState
                           )));
                 },
               ),
-            ),
+            )
           ],
         ),
       ),

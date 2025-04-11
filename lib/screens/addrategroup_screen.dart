@@ -22,7 +22,7 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
       ),
       body: Padding(
         padding: EdgeInsets.only(left: 15, right: 15),
-        child: Column(
+        child: ListView(
           children: [
             Row(
               children: [

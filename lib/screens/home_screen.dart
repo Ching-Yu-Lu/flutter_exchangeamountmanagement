@@ -73,46 +73,44 @@ class HomeScreenState extends State<HomeScreen> {
                     spacing: 5,
                     children: [
                       /* 幣別 */
-                      Container(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '幣別',
-                              style: TextStyle(fontSize: 14),
-                            ),
-                            SizedBox(
-                              width: 110,
-                              height: 51,
-                              child: DropdownButtonFormField(
-                                value: numberOfPeople,
-                                decoration: // rouned all borders
-                                    InputDecoration(
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '幣別',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          SizedBox(
+                            width: 110,
+                            height: 51,
+                            child: DropdownButtonFormField(
+                              value: numberOfPeople,
+                              decoration: // rouned all borders
+                                  InputDecoration(
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                items: // 0 to 6
-                                    List.generate(
-                                  7,
-                                  (index) => DropdownMenuItem(
-                                    value: index + 1,
-                                    child: Text('${index + 1}人'),
-                                  ),
-                                ),
-                                onChanged: (v) {
-                                  setState(() {
-                                    numberOfPeople = v as int;
-                                  });
-                                  // wait 1 second
-                                  Future.delayed(Duration(seconds: 1), () {
-                                    setState(() {});
-                                  });
-                                },
                               ),
-                            )
-                          ],
-                        ),
+                              items: // 0 to 6
+                                  List.generate(
+                                7,
+                                (index) => DropdownMenuItem(
+                                  value: index + 1,
+                                  child: Text('${index + 1}人'),
+                                ),
+                              ),
+                              onChanged: (v) {
+                                setState(() {
+                                  numberOfPeople = v as int;
+                                });
+                                // wait 1 second
+                                Future.delayed(Duration(seconds: 1), () {
+                                  setState(() {});
+                                });
+                              },
+                            ),
+                          )
+                        ],
                       ),
                       /* 查詢日期(起) */
                       Expanded(
@@ -273,8 +271,7 @@ class HomeScreenState extends State<HomeScreen> {
                     ))
                   ],
                 ),
-                SizedBox(
-                  height: 450,
+                Expanded(
                   child: ListView.builder(
                     itemCount: 10,
                     itemBuilder: (context, index) {

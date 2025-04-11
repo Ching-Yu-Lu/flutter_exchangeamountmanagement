@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_exchangeamountmanagement/data/exchangerate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ExchangerateScreen extends ConsumerStatefulWidget {
@@ -10,6 +11,14 @@ class ExchangerateScreen extends ConsumerStatefulWidget {
 }
 
 class ExchangerateScreenState extends ConsumerState<ExchangerateScreen> {
+  late Future<String> futureHtml;
+
+  @override
+  void initState() {
+    super.initState();
+    futureHtml = fetchAndExtractJson(); // ✅ 在 initState() 執行非同步請求
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,8 +29,25 @@ class ExchangerateScreenState extends ConsumerState<ExchangerateScreen> {
         padding: EdgeInsets.only(left: 15, right: 15),
         child: Column(
           children: [
-            SizedBox(
-              height: 500,
+            /*FutureBuilder<String>(
+              future: futureHtml,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator(); // 顯示 loading
+                } else if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}'); // 顯示錯誤
+                } else {
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.all(10),
+                    child: Text(
+                      snapshot.data ?? "No Data",
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ); // 顯示 HTML 內容
+                }
+              },
+            ) // */
+            Expanded(
               child: ListView.builder(
                 itemCount: 10,
                 itemBuilder: (context, index) {
@@ -47,7 +73,7 @@ class ExchangerateScreenState extends ConsumerState<ExchangerateScreen> {
                       ));
                 },
               ),
-            ),
+            ), // */
           ],
         ),
       ),
