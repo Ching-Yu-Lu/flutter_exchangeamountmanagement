@@ -1,23 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_exchangeamountmanagement/data/currencyTarget.dart';
+import 'package:flutter_exchangeamountmanagement/data/exchangerate.dart';
 import 'package:flutter_exchangeamountmanagement/screens/addrategroup_screen.dart';
 import 'package:flutter_exchangeamountmanagement/screens/exchangerate_screen.dart';
 import 'package:flutter_exchangeamountmanagement/screens/modifygroupcontent_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  HomeScreenState createState() => HomeScreenState();
+  ConsumerState<ConsumerStatefulWidget> createState() => HomeScreenState();
 }
 
-class HomeScreenState extends State<HomeScreen> {
-  int numberOfPeople = 1;
+class HomeScreenState extends ConsumerState<HomeScreen> {
+  String currencySelect = 'All';
   int pickerRangeDays = 720;
   DateTime selectedDateBeg = DateTime.now().add(const Duration(days: -30));
   DateTime selectedDateEnd = DateTime.now().add(const Duration(days: 30));
+  //late Future<List<FetchAndExtract>> futureDataList;
+
   @override
   Widget build(BuildContext context) {
-    //print("selectedDateBeg: $selectedDateBeg");
+    // 監聽(取得幣別匯率資料)
+    final futureDataList = ref.watch(fetchAndExtractProvider);
+    // 幣別匯率資料
+    final List<FetchAndExtract> currencyRateDataList =
+        futureDataList.value ?? [];
+    // 幣別選單資料
+    final List<FetchAndExtract> currencySelectListList = [
+      FetchAndExtract(
+          unitCurrency: 'All',
+          targetCurrency: 'All',
+          cashBuyingRate: 0.0,
+          cashSellingRate: 0.0,
+          spotBuyingRate: 0.0,
+          spotSellingRate: 0.0,
+          bankName: '',
+          updateTime: ''),
+    ];
+    currencySelectListList.addAll(currencyRateDataList);
+    // 群組資料
+    final List<Currencytarget> currencyTargetList =
+        ref.watch(currencyTargetProvider);
+
     return Scaffold(
         appBar: AppBar(
             toolbarHeight: 150,
@@ -39,8 +65,8 @@ class HomeScreenState extends State<HomeScreen> {
                             onPressed: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (context) =>
-                                      const ExchangerateScreen(),
+                                  builder: (context) => ExchangerateScreen(
+                                      futureList: currencyRateDataList),
                                 ),
                               );
                             },
@@ -54,8 +80,8 @@ class HomeScreenState extends State<HomeScreen> {
                             onPressed: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (context) =>
-                                      const AddrategroupScreen(),
+                                  builder: (context) => AddrategroupScreen(
+                                      currencyRateList: currencyRateDataList),
                                 ),
                               );
                             },
@@ -81,32 +107,31 @@ class HomeScreenState extends State<HomeScreen> {
                             style: TextStyle(fontSize: 14),
                           ),
                           SizedBox(
-                            width: 110,
+                            width: 100,
                             height: 51,
                             child: DropdownButtonFormField(
-                              value: numberOfPeople,
+                              value: currencySelect,
                               decoration: // rouned all borders
                                   InputDecoration(
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
-                              items: // 0 to 6
-                                  List.generate(
-                                7,
-                                (index) => DropdownMenuItem(
-                                  value: index + 1,
-                                  child: Text('${index + 1}人'),
-                                ),
-                              ),
+                              items: currencySelectListList.map((item) {
+                                return DropdownMenuItem(
+                                  value: item.unitCurrency,
+                                  child: Text(item.unitCurrency),
+                                );
+                              }).toList(),
                               onChanged: (v) {
                                 setState(() {
-                                  numberOfPeople = v as int;
+                                  currencySelect = v as String;
+                                  //print('currencySelect => $currencySelect');
                                 });
                                 // wait 1 second
-                                Future.delayed(Duration(seconds: 1), () {
+                                /*Future.delayed(Duration(seconds: 1), () {
                                   setState(() {});
-                                });
+                                });*/
                               },
                             ),
                           )
@@ -157,9 +182,8 @@ class HomeScreenState extends State<HomeScreen> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 12, vertical: 15),
                                       child: Text(
-                                        '${selectedDateBeg.year}-${selectedDateBeg.month.toString().padLeft(2, '0')}-${selectedDateBeg.day.toString().padLeft(2, '0')}',
-                                        style: TextStyle(fontSize: 14),
-                                      ),
+                                          '${selectedDateBeg.year}-${selectedDateBeg.month.toString().padLeft(2, '0')}-${selectedDateBeg.day.toString().padLeft(2, '0')}',
+                                          style: TextStyle(fontSize: 14)),
                                     ),
                                   ],
                                 ),
@@ -273,24 +297,28 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
                 Expanded(
                   child: ListView.builder(
-                    itemCount: 10,
+                    itemCount: currencyTargetList.length,
                     itemBuilder: (context, index) {
+                      Currencytarget showItem = currencyTargetList[index];
                       return ListTile(
-                          title: Text("Item $index"),
+                          title: Text("名稱: ${showItem.groupName}"),
                           subtitle: Column(
                             children: [
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text("預定日期: 2025-01-01 ~ 2025-06-01"),
+                                  Text("預定日期: "),
+                                  Expanded(
+                                      child: Text("2025-01-01 ~ 2025-06-01"))
                                 ],
                               ),
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text("目標金額: 10000/100000(10%) JPY"),
+                                  Text("目標金額: "),
+                                  Expanded(child: Text("10000/100000(10%) JPY"))
                                 ],
                               ),
                             ],
@@ -301,7 +329,9 @@ class HomeScreenState extends State<HomeScreen> {
                                   MaterialPageRoute(
                                     builder: (context) =>
                                         ModifygroupcontentScreen(
-                                            groupID: index),
+                                            groupID: index,
+                                            currencyRateList:
+                                                currencyRateDataList),
                                   ),
                                 );
                               },

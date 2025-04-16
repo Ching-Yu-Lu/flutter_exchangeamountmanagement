@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_exchangeamountmanagement/data/exchangerate.dart';
 import 'package:flutter_exchangeamountmanagement/screens/addrategroup_screen.dart';
 import 'package:flutter_exchangeamountmanagement/screens/modifygroupcontentdtl_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ModifygroupcontentScreen extends ConsumerStatefulWidget {
   final int groupID;
-  const ModifygroupcontentScreen({super.key, required this.groupID});
+  final List<FetchAndExtract> currencyRateList;
+  const ModifygroupcontentScreen(
+      {super.key, required this.groupID, required this.currencyRateList});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
@@ -29,7 +32,8 @@ class ModifygroupcontentScreenState
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => const AddrategroupScreen(),
+                          builder: (context) => AddrategroupScreen(
+                              currencyRateList: widget.currencyRateList),
                         ),
                       );
                     },

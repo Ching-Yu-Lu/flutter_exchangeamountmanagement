@@ -3,7 +3,9 @@ import 'package:flutter_exchangeamountmanagement/data/exchangerate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ExchangerateScreen extends ConsumerStatefulWidget {
-  const ExchangerateScreen({super.key});
+  //final Future<List<FetchAndExtract>> futureList;
+  final List<FetchAndExtract> futureList;
+  const ExchangerateScreen({super.key, required this.futureList});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
@@ -11,69 +13,147 @@ class ExchangerateScreen extends ConsumerStatefulWidget {
 }
 
 class ExchangerateScreenState extends ConsumerState<ExchangerateScreen> {
-  late Future<String> futureHtml;
-
-  @override
-  void initState() {
-    super.initState();
-    futureHtml = fetchAndExtractJson(); // ✅ 在 initState() 執行非同步請求
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('rate'),
+        title: const Text('匯率查詢'),
       ),
       body: Padding(
         padding: EdgeInsets.only(left: 15, right: 15),
         child: Column(
           children: [
-            /*FutureBuilder<String>(
-              future: futureHtml,
+            /*FutureBuilder<List<FetchAndExtract>>(
+              future: widget.futureList,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator(); // 顯示 loading
+                  return const Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}'); // 顯示錯誤
-                } else {
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.all(10),
-                    child: Text(
-                      snapshot.data ?? "No Data",
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                  ); // 顯示 HTML 內容
+                  return Text('Error: ${snapshot.error}');
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Text('查無資料');
                 }
+
+                // ✅ 有資料的情況下，開始顯示列表
+                List<FetchAndExtract> data = snapshot.data!;
+
+                /*return Expanded(
+                  child: ListView.builder(
+                    itemCount: data.length,
+                    itemBuilder: (context, index) {
+                      final item = data[index];
+                      return Card(
+                        child: ListTile(
+                          title: Text(
+                              '${item.unitCurrency} → ${item.targetCurrency}'),
+                          subtitle: Text(
+                              '即期買入: ${item.cashBuyingRate}, 即期賣出: ${item.cashSellingRate}\n'
+                              '銀行: ${item.bankName}, 更新時間: ${item.updateTime}'),
+                        ),
+                      );
+                    },
+                  ),
+                );// */
+                return Expanded(
+                  child: ListView.builder(
+                    itemCount: data.length,
+                    itemBuilder: (context, index) {
+                      final item = data[index];
+
+                      String cashBuyingRate = item.cashBuyingRate == 0
+                          ? "-"
+                          : item.cashBuyingRate.toString();
+
+                      String cashSellingRate = item.cashSellingRate == 0
+                          ? "-"
+                          : item.cashSellingRate.toString();
+
+                      String spotBuyingRate = item.spotBuyingRate == 0
+                          ? "-"
+                          : item.spotBuyingRate.toString();
+
+                      String spotSellingRate = item.spotSellingRate == 0
+                          ? "-"
+                          : item.spotSellingRate.toString();
+
+                      return ListTile(
+                          title: Text(
+                              "幣別: ${item.unitCurrencyName}(${item.unitCurrency})"),
+                          subtitle: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                      child: Text("即期買入: $cashBuyingRate")),
+                                  Expanded(
+                                      child: Text("即期賣出: $cashSellingRate")),
+                                ],
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                      child: Text("現金買入: $spotBuyingRate")),
+                                  Expanded(
+                                      child: Text("現金賣出: $spotSellingRate")),
+                                ],
+                              ),
+                            ],
+                          ));
+                    },
+                  ),
+                );
               },
             ) // */
             Expanded(
               child: ListView.builder(
-                itemCount: 10,
+                itemCount: widget.futureList.length,
                 itemBuilder: (context, index) {
+                  final item = widget.futureList[index];
+
+                  String cashBuyingRate = item.cashBuyingRate == 0
+                      ? "-"
+                      : item.cashBuyingRate.toString();
+
+                  String cashSellingRate = item.cashSellingRate == 0
+                      ? "-"
+                      : item.cashSellingRate.toString();
+
+                  String spotBuyingRate = item.spotBuyingRate == 0
+                      ? "-"
+                      : item.spotBuyingRate.toString();
+
+                  String spotSellingRate = item.spotSellingRate == 0
+                      ? "-"
+                      : item.spotSellingRate.toString();
+
                   return ListTile(
-                      title: Text("幣別 TWD"),
+                      title: Text(
+                          "幣別: ${item.currencyCodeToName()}(${item.unitCurrency})"),
                       subtitle: Column(
                         children: [
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Expanded(child: Text("即期買入: ＄Rate1")),
-                              Expanded(child: Text("即期賣出: ＄Rate2")),
+                              Expanded(child: Text("即期買入: $cashBuyingRate")),
+                              Expanded(child: Text("即期賣出: $cashSellingRate")),
                             ],
                           ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Expanded(child: Text("現金買入: ＄Rate3")),
-                              Expanded(child: Text("現金賣出: ＄Rate4")),
+                              Expanded(child: Text("現金買入: $spotBuyingRate")),
+                              Expanded(child: Text("現金賣出: $spotSellingRate")),
                             ],
                           ),
                         ],
                       ));
                 },
               ),
-            ), // */
+            )
           ],
         ),
       ),

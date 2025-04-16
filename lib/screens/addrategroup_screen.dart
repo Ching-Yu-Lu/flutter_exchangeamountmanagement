@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_exchangeamountmanagement/data/exchangerate.dart';
+import 'package:flutter_exchangeamountmanagement/formfields/InputTextFormField.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AddrategroupScreen extends ConsumerStatefulWidget {
-  const AddrategroupScreen({super.key});
+  final List<FetchAndExtract> currencyRateList;
+  const AddrategroupScreen({super.key, required this.currencyRateList});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
@@ -10,12 +13,33 @@ class AddrategroupScreen extends ConsumerStatefulWidget {
 }
 
 class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
-  int numberOfPeople = 1;
+  String currencySelect = 'PleaseSelect';
   int pickerRangeDays = 720;
   DateTime selectedDateBeg = DateTime.now().add(const Duration(days: -30));
   DateTime selectedDateEnd = DateTime.now().add(const Duration(days: 30));
+
+  // tempValue
+  dynamic tempTextValue = 0;
+
+  // 目標金額(焦點/Value編輯)
+  FocusNode focusNodeTargetCost = FocusNode();
+  TextEditingController textEditingControllerTargetCost =
+      TextEditingController(text: '0');
+
   @override
   Widget build(BuildContext context) {
+    List<FetchAndExtract> currencySelectListList = [
+      FetchAndExtract(
+          unitCurrency: 'PleaseSelect',
+          targetCurrency: 'PleaseSelect',
+          cashBuyingRate: 0.0,
+          cashSellingRate: 0.0,
+          spotBuyingRate: 0.0,
+          spotSellingRate: 0.0,
+          bankName: '',
+          updateTime: ''),
+    ];
+    currencySelectListList.addAll(widget.currencyRateList);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Group'),
@@ -24,6 +48,7 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
         padding: EdgeInsets.only(left: 15, right: 15),
         child: ListView(
           children: [
+            // 名稱
             Row(
               children: [
                 Expanded(
@@ -48,6 +73,7 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
               ],
             ),
             SizedBox(height: 10),
+            // 幣別
             Row(
               children: [
                 Expanded(
@@ -58,29 +84,27 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
                     SizedBox(
                       height: 51,
                       child: DropdownButtonFormField(
-                        value: numberOfPeople,
+                        value: currencySelect,
                         decoration: // rouned all borders
                             InputDecoration(
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        items: // 0 to 6
-                            List.generate(
-                          7,
-                          (index) => DropdownMenuItem(
-                            value: index + 1,
-                            child: Text('${index + 1}人'),
-                          ),
-                        ),
+                        items: currencySelectListList.map((item) {
+                          return DropdownMenuItem(
+                            value: item.unitCurrency,
+                            child: Text(item.currencyCodeToName()),
+                          );
+                        }).toList(),
                         onChanged: (v) {
                           setState(() {
-                            numberOfPeople = v as int;
+                            currencySelect = v as String;
                           });
                           // wait 1 second
-                          Future.delayed(Duration(seconds: 1), () {
+                          /*Future.delayed(Duration(seconds: 1), () {
                             setState(() {});
-                          });
+                          });*/
                         },
                       ),
                     ) // */
@@ -89,6 +113,7 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
               ],
             ),
             SizedBox(height: 10),
+            // 預定達成日期(起)
             Row(
               children: [
                 Expanded(
@@ -144,6 +169,7 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
               ],
             ),
             SizedBox(height: 10),
+            // 預定達成日期(迄)
             Row(
               children: [
                 Expanded(
@@ -199,26 +225,28 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
               ],
             ),
             SizedBox(height: 10),
+            // 目標金額
             Row(
               children: [
-                Expanded(
-                    child: Column(
-                  children: [
-                    Text('目標金額'),
-                    TextFormField(
-                      initialValue: 'enteredLastName',
-                      // border
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          //enteredLastName = value;
-                        });
-                      },
-                    ),
-                  ],
-                ))
+                TextFormFieldDouble(
+                  textValue: tempTextValue.toString(),
+                  focusNode: focusNodeTargetCost,
+                  textEditingController: textEditingControllerTargetCost,
+                  onChanged: (val) {
+                    setState(() {
+                      tempTextValue = val.toString();
+                      //print('onChanged textValue: $tempTextValue');
+                    });
+                  },
+                  onSaved: (val) {
+                    setState(() {
+                      tempTextValue = val.toString();
+                      textEditingControllerTargetCost.value =
+                          TextEditingValue(text: val);
+                      //print('onSaved textValue: $tempTextValue');
+                    });
+                  },
+                )
               ],
             )
           ],
