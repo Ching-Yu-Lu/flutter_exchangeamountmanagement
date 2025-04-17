@@ -1,11 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_exchangeamountmanagement/data/currencyTarget.dart';
 import 'package:flutter_exchangeamountmanagement/data/exchangerate.dart';
 import 'package:flutter_exchangeamountmanagement/formfields/InputTextFormField.dart';
+import 'package:flutter_exchangeamountmanagement/formfields/messageAlert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:date_format/date_format.dart';
 
 class AddrategroupScreen extends ConsumerStatefulWidget {
+  /// 群組編號
+  final int groupID;
+
+  /// 幣別匯率列表
   final List<FetchAndExtract> currencyRateList;
-  const AddrategroupScreen({super.key, required this.currencyRateList});
+
+  /// 目標資料列表
+  final List<Currencytarget> currencyTargetList;
+
+  const AddrategroupScreen(
+      {super.key,
+      this.groupID = -1,
+      required this.currencyRateList,
+      required this.currencyTargetList});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
@@ -13,13 +28,15 @@ class AddrategroupScreen extends ConsumerStatefulWidget {
 }
 
 class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
-  String currencySelect = 'PleaseSelect';
+  // 日期選擇範圍(天數)
   int pickerRangeDays = 720;
+
+  // 輸入資料變數
+  String inputGroupName = '';
+  String inputCurrency = 'PleaseSelect';
   DateTime selectedDateBeg = DateTime.now().add(const Duration(days: -30));
   DateTime selectedDateEnd = DateTime.now().add(const Duration(days: 30));
-
-  // tempValue
-  dynamic tempTextValue = 0;
+  num inputTargetTotalCost = 0;
 
   // 目標金額(焦點/Value編輯)
   FocusNode focusNodeTargetCost = FocusNode();
@@ -27,7 +44,37 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
       TextEditingController(text: '0');
 
   @override
+  void initState() {
+    super.initState();
+
+    // 群組ID不等於-1，表示修改資料
+    if (widget.groupID >= 0) {
+      for (var element in widget.currencyTargetList) {
+        if (element.groupID == widget.groupID) {
+          inputGroupName = element.groupName ?? '';
+          inputCurrency = element.currency ?? 'PleaseSelect';
+
+          String dateBeg = element.dateBeg ??
+              formatDate(selectedDateBeg, [yyyy, '-', mm, '-', dd]);
+          selectedDateBeg = DateTime.parse(dateBeg);
+
+          String dateEnd = element.dateEnd ??
+              formatDate(selectedDateEnd, [yyyy, '-', mm, '-', dd]);
+          selectedDateEnd = DateTime.parse(dateEnd);
+
+          inputTargetTotalCost = element.targetTotalCost;
+        }
+      }
+    }
+
+    // 初始化 TextEditingController 的值
+    textEditingControllerTargetCost.text =
+        Currencytarget.currentNumber(inputTargetTotalCost.toString());
+  }
+
+  @override
   Widget build(BuildContext context) {
+    /// 幣別下拉選單資料
     List<FetchAndExtract> currencySelectListList = [
       FetchAndExtract(
           unitCurrency: 'PleaseSelect',
@@ -39,7 +86,10 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
           bankName: '',
           updateTime: ''),
     ];
+
+    /// 加入幣別匯率列表
     currencySelectListList.addAll(widget.currencyRateList);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Group'),
@@ -55,16 +105,21 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
                     child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('名稱'),
+                    Text('名稱',
+                        style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey)),
                     TextFormField(
-                      initialValue: 'enteredLastName',
+                      initialValue: inputGroupName,
                       // border
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
                       ),
                       onChanged: (value) {
                         setState(() {
-                          //enteredLastName = value;
+                          inputGroupName = value;
+                          //print('groupName: $groupName');
                         });
                       },
                     ),
@@ -80,33 +135,54 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
                     child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('幣別'),
+                    Text('幣別',
+                        style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey)),
                     SizedBox(
                       height: 51,
-                      child: DropdownButtonFormField(
-                        value: currencySelect,
-                        decoration: // rouned all borders
-                            InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        items: currencySelectListList.map((item) {
-                          return DropdownMenuItem(
-                            value: item.unitCurrency,
-                            child: Text(item.currencyCodeToName()),
-                          );
-                        }).toList(),
-                        onChanged: (v) {
-                          setState(() {
-                            currencySelect = v as String;
-                          });
-                          // wait 1 second
-                          /*Future.delayed(Duration(seconds: 1), () {
+                      child: widget.groupID < 0
+                          ? DropdownButtonFormField(
+                              value: inputCurrency,
+                              decoration: // rouned all borders
+                                  InputDecoration(
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              items: currencySelectListList.map((item) {
+                                return DropdownMenuItem(
+                                  value: item.unitCurrency,
+                                  child: Text(item.currencyCodeToName()),
+                                );
+                              }).toList(),
+                              onChanged: (v) {
+                                setState(() {
+                                  inputCurrency = v as String;
+                                });
+                                // wait 1 second
+                                /*Future.delayed(Duration(seconds: 1), () {
                             setState(() {});
                           });*/
-                        },
-                      ),
+                              },
+                            )
+                          : TextField(
+                              readOnly: true,
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor:
+                                    const Color.fromARGB(255, 186, 185, 185),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                hintStyle: TextStyle(
+                                    color: Colors.white, fontSize: 18),
+                                hintText:
+                                    FetchAndExtract.currencyCodeToNameStatic(
+                                        inputCurrency),
+                              ),
+                            ),
                     ) // */
                   ],
                 ))
@@ -118,8 +194,13 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
               children: [
                 Expanded(
                     child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('預定達成日期(起)'),
+                    Text('預定達成日期(起)',
+                        style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey)),
                     InkWell(
                       onTap: () {
                         showDatePicker(
@@ -133,11 +214,16 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
                           if (value != null) {
                             setState(() {
                               selectedDateBeg = value;
+                              Duration difference =
+                                  selectedDateBeg.difference(selectedDateEnd);
+                              if (difference.inSeconds > 0) {
+                                selectedDateEnd = selectedDateBeg;
+                              }
                             });
                             // wait 1 second
-                            Future.delayed(Duration(seconds: 1), () {
+                            /*Future.delayed(Duration(seconds: 1), () {
                               setState(() {});
-                            });
+                            });*/
                           }
                         });
                       },
@@ -174,8 +260,13 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
               children: [
                 Expanded(
                     child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('預定達成日期(迄)'),
+                    Text('預定達成日期(迄)',
+                        style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey)),
                     InkWell(
                       onTap: () {
                         showDatePicker(
@@ -189,11 +280,18 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
                           if (value != null) {
                             setState(() {
                               selectedDateEnd = value;
+                              Duration difference =
+                                  selectedDateBeg.difference(selectedDateEnd);
+                              if (difference.inSeconds > 0) {
+                                selectedDateEnd = selectedDateBeg;
+                              }
+                              /*addItem.dateBeg = formatDate(
+                                  selectedDateEnd, [yyyy, '-', mm, '-', dd]);*/
                             });
                             // wait 1 second
-                            Future.delayed(Duration(seconds: 1), () {
+                            /*Future.delayed(Duration(seconds: 1), () {
                               setState(() {});
-                            });
+                            });*/
                           }
                         });
                       },
@@ -229,21 +327,24 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
             Row(
               children: [
                 TextFormFieldDouble(
-                  textValue: tempTextValue.toString(),
+                  title: '目標金額',
+                  textValue: inputTargetTotalCost.toString(),
                   focusNode: focusNodeTargetCost,
                   textEditingController: textEditingControllerTargetCost,
                   onChanged: (val) {
                     setState(() {
-                      tempTextValue = val.toString();
-                      //print('onChanged textValue: $tempTextValue');
+                      inputTargetTotalCost =
+                          val.isEmpty ? 0 : double.parse(val);
+                      //print('onChanged textValue: $inputTargetTotalCost');
                     });
                   },
                   onSaved: (val) {
                     setState(() {
-                      tempTextValue = val.toString();
+                      inputTargetTotalCost =
+                          val.isEmpty ? 0 : double.parse(val);
                       textEditingControllerTargetCost.value =
                           TextEditingValue(text: val);
-                      //print('onSaved textValue: $tempTextValue');
+                      //print('onSaved textValue: $inputTargetTotalCost');
                     });
                   },
                 )
@@ -252,7 +353,7 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
           ],
         ),
       ),
-      /* 固定在底部按鈕 */
+      /* 固定在底部按鈕(加入/修改) */
       bottomNavigationBar: BottomAppBar(
         color: Colors.white,
         child: Padding(
@@ -269,7 +370,71 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
               '加入/修改',
               style: TextStyle(color: Colors.white, fontSize: 25),
             ),
-            onPressed: () {},
+            onPressed: () {
+              setState(() {
+                String strMsg = '';
+
+                if (strMsg.isEmpty) {
+                  if (inputGroupName.isEmpty) {
+                    strMsg = '請輸入群組名稱';
+                  }
+                }
+
+                if (strMsg.isEmpty) {
+                  if (inputCurrency == 'PleaseSelect') {
+                    strMsg = '請選擇幣別';
+                  }
+                }
+
+                if (strMsg.isEmpty) {
+                  if (inputTargetTotalCost == 0) {
+                    strMsg = '請輸入目標金額';
+                  }
+                }
+
+                if (strMsg.isNotEmpty) {
+                  showAlert(context, '提示訊息', strMsg);
+                } else {
+                  int gid = 1;
+
+                  //print(widget.groupID);
+                  if (widget.groupID >= 0) {
+                    gid = widget.groupID;
+                  } else {
+                    int listLength = 0;
+                    if (widget.currencyTargetList.isNotEmpty) {
+                      listLength = widget.currencyTargetList.length;
+                    }
+
+                    if (listLength > 0) {
+                      gid = listLength + 1;
+                    }
+                  }
+
+                  Currencytarget addItem = Currencytarget(
+                    groupID: gid,
+                    groupName: inputGroupName,
+                    currency: inputCurrency,
+                    dateBeg:
+                        formatDate(selectedDateBeg, [yyyy, '-', mm, '-', dd]),
+                    dateEnd:
+                        formatDate(selectedDateEnd, [yyyy, '-', mm, '-', dd]),
+                    targetTotalCost: inputTargetTotalCost,
+                  );
+                  //print('addItem => groupName:${addItem.groupName}, currency:${addItem.currency}, dateBeg:${addItem.dateBeg}, dateEnd:${addItem.dateEnd}, targetTotalCost:${addItem.targetTotalCost}');
+
+                  if (widget.groupID >= 0) {
+                    ref.read(currencyTargetProvider.notifier).change(addItem);
+                  } else {
+                    ref.read(currencyTargetProvider.notifier).add(addItem);
+                  }
+
+                  // 返回上一頁
+                  //Navigator.of(context).pop(true);
+                  Navigator.pop(context);
+                }
+              });
+            },
           ),
         ),
       ),

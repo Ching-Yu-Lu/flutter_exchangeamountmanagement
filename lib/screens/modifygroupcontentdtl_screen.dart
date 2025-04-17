@@ -1,9 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_exchangeamountmanagement/data/currencyTarget.dart';
+import 'package:flutter_exchangeamountmanagement/data/exchangerate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ModifygroupcontentdtlScreen extends ConsumerStatefulWidget {
+  /// 群組編號
   final int groupID;
-  const ModifygroupcontentdtlScreen({super.key, required this.groupID});
+
+  /// 明細編號
+  final int dtlID;
+
+  /// 幣別匯率列表
+  final List<FetchAndExtract> currencyRateList;
+
+  /// 目標資料列表
+  final List<Currencytarget> currencyTargetList;
+
+  const ModifygroupcontentdtlScreen(
+      {super.key,
+      required this.groupID,
+      required this.dtlID,
+      required this.currencyRateList,
+      required this.currencyTargetList});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
@@ -14,6 +32,7 @@ class ModifygroupcontentScreendtlState
     extends ConsumerState<ModifygroupcontentdtlScreen> {
   int pickerRangeDays = 720;
   DateTime addDate = DateTime.now().add(const Duration(days: -30));
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,6 +50,7 @@ class ModifygroupcontentScreendtlState
         padding: EdgeInsets.only(left: 15, right: 15),
         child: ListView(
           children: [
+            /* 日期 */
             Row(
               children: [
                 Expanded(
@@ -53,9 +73,9 @@ class ModifygroupcontentScreendtlState
                               addDate = value;
                             });
                             // wait 1 second
-                            Future.delayed(Duration(seconds: 1), () {
+                            /*Future.delayed(Duration(seconds: 1), () {
                               setState(() {});
-                            });
+                            });*/
                           }
                         });
                       },
@@ -87,6 +107,7 @@ class ModifygroupcontentScreendtlState
               ],
             ),
             SizedBox(height: 10),
+            /* 台幣金額 */
             Row(
               children: [
                 Expanded(

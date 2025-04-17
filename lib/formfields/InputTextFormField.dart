@@ -2,8 +2,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_exchangeamountmanagement/data/currencyTarget.dart';
 
 class TextFormFieldDouble extends StatefulWidget {
+  /// 標題
+  final String title;
+
   /// 整數長度
   final int integerLength;
 
@@ -22,6 +26,7 @@ class TextFormFieldDouble extends StatefulWidget {
   final Function(String) onSaved;
   const TextFormFieldDouble({
     super.key,
+    required this.title,
     this.integerLength = 10,
     this.decimalLength = 5,
     required this.textValue,
@@ -42,7 +47,8 @@ class TextFormFieldDoubleState extends State<TextFormFieldDouble> {
 
     widget.focusNode.addListener(() {
       if (!widget.focusNode.hasFocus) {
-        String strNum = currentNumber(widget.textValue);
+        String strNum =
+            Currencytarget.currentNumber(widget.textEditingController.text);
         //print('textValue: ${widget.textValue}');
         //print('currentNumber: $strNum');
         widget.onSaved(strNum);
@@ -59,8 +65,11 @@ class TextFormFieldDoubleState extends State<TextFormFieldDouble> {
   Widget build(BuildContext context) {
     return Expanded(
         child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('目標金額'),
+        Text(widget.title,
+            style: const TextStyle(
+                fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey)),
         TextFormField(
           focusNode: widget.focusNode,
           controller: widget.textEditingController,
@@ -82,6 +91,12 @@ class TextFormFieldDoubleState extends State<TextFormFieldDouble> {
           onSaved: (newValue) {
             double setValue = double.tryParse(newValue ?? '') ?? 0;
             widget.onChanged(setValue.toString());
+          },
+          onTap: () {
+            widget.textEditingController.selection = TextSelection(
+              baseOffset: 0,
+              extentOffset: widget.textEditingController.text.length,
+            );
           },
         ),
       ],
@@ -138,37 +153,4 @@ class NumberLengthFormatter extends TextInputFormatter {
       selection: TextSelection.collapsed(offset: selectionIndex),
     );
   }
-}
-
-String currentNumber(String inputValue) {
-  String result = '0';
-
-  // 整數部分
-  String beforePoint = '';
-  // 小數部分
-  String afterPoint = '';
-
-  // 取得整數/小數部分數字
-  if (inputValue.contains('.')) {
-    int pointIndex = inputValue.indexOf('.');
-    beforePoint = inputValue.substring(0, pointIndex);
-    afterPoint = inputValue.substring(pointIndex + 1, inputValue.length);
-  } else {
-    beforePoint = inputValue;
-  }
-
-  // 整數
-  int intBeforePoint = int.tryParse(beforePoint) ?? 0;
-
-  // 小數
-  dynamic doubleAfterPoint = double.tryParse(('0.$afterPoint')) ?? 0.0;
-
-  if (doubleAfterPoint > 0) {
-    dynamic curNum = intBeforePoint + doubleAfterPoint;
-    result = curNum.toString();
-  } else {
-    result = intBeforePoint.toString();
-  }
-
-  return result;
 }

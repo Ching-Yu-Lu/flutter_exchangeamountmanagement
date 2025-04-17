@@ -57,10 +57,14 @@ class FetchAndExtract {
 
   /// 外幣幣別代碼轉名稱
   String currencyCodeToName() {
+    return FetchAndExtract.currencyCodeToNameStatic(unitCurrency);
+  }
+
+  static String currencyCodeToNameStatic(String currencyCode) {
     String rt = '';
 
     // 幣別中文名稱
-    switch (unitCurrency) {
+    switch (currencyCode) {
       case 'All':
         rt = '全部';
         break;

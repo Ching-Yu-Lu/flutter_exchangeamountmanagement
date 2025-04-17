@@ -41,8 +41,13 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
     ];
     currencySelectListList.addAll(currencyRateDataList);
     // 群組資料
-    final List<Currencytarget> currencyTargetList =
+    final List<Currencytarget> currencyTargetDataList =
         ref.watch(currencyTargetProvider);
+
+    // 兌換目標資料(未完成)
+    final unCompletedList = currencyTargetDataList
+        .where((items) => items.getTotalCost() < items.targetTotalCost)
+        .toList();
 
     return Scaffold(
         appBar: AppBar(
@@ -81,7 +86,9 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (context) => AddrategroupScreen(
-                                      currencyRateList: currencyRateDataList),
+                                      currencyRateList: currencyRateDataList,
+                                      currencyTargetList:
+                                          currencyTargetDataList),
                                 ),
                               );
                             },
@@ -93,6 +100,7 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                     )
                   ],
                 ),
+                /* 查詢條件 */
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 1),
                   child: Row(
@@ -267,7 +275,7 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        "待完成: {.length}",
+                        "待完成: ${unCompletedList.length}",
                         style: TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 18),
                       ),
@@ -282,7 +290,7 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                               fontSize: 15, fontWeight: FontWeight.bold),
                         ),
                         Switch(
-                            value: false, //widget.switchStatus,
+                            value: true, //widget.switchStatus,
                             onChanged: (v) {
                               setState(() {
                                 /*ref
@@ -297,28 +305,46 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 Expanded(
                   child: ListView.builder(
-                    itemCount: currencyTargetList.length,
+                    itemCount: currencyTargetDataList.length,
                     itemBuilder: (context, index) {
-                      Currencytarget showItem = currencyTargetList[index];
+                      Currencytarget showItem = currencyTargetDataList[index];
+
+                      /// 群組編號
+                      int gid = showItem.groupID ?? 0;
+
+                      /// 總金額
+                      double totalCost = showItem.getTotalCost();
+
+                      /// 達成率
+                      int persent =
+                          ((totalCost / showItem.targetTotalCost) * 100)
+                              .toInt();
                       return ListTile(
-                          title: Text("名稱: ${showItem.groupName}"),
+                          /* 名稱 */
+                          title: Text(
+                              "ID: ${showItem.groupID}, 名稱: ${showItem.groupName}"),
                           subtitle: Column(
                             children: [
+                              /* 預定日期 */
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text("預定日期: "),
                                   Expanded(
-                                      child: Text("2025-01-01 ~ 2025-06-01"))
+                                      child: Text(
+                                          "${showItem.dateBeg} ~ ${showItem.dateEnd}"))
                                 ],
                               ),
+                              /* 目標金額 */
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text("目標金額: "),
-                                  Expanded(child: Text("10000/100000(10%) JPY"))
+                                  Expanded(
+                                      child: Text(
+                                          "$totalCost/${Currencytarget.getThousandthsCost(showItem.targetTotalCost)} ($persent%) ${showItem.currency}"))
                                 ],
                               ),
                             ],
@@ -327,11 +353,13 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                               onPressed: () {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (context) =>
-                                        ModifygroupcontentScreen(
-                                            groupID: index,
-                                            currencyRateList:
-                                                currencyRateDataList),
+                                    builder: (context) => ModifygroupcontentScreen(
+                                        groupID: gid,
+                                        currencyRateList:
+                                            currencyRateDataList /*,
+                                            currencyTargetList:
+                                                currencyTargetDataList*/
+                                        ),
                                   ),
                                 );
                               },

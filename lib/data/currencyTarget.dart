@@ -3,15 +3,29 @@
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Currencytarget {
+  /// 群組ID
   int? groupID;
+
+  /// 群組名稱
   String? groupName;
+
+  /// 幣別
   String? currency;
+
+  /// 預定日期(起)，格式：yyyy-MM-dd
   String? dateBeg;
+
+  /// 預定日期(迄)，格式：yyyy-MM-dd
   String? dateEnd;
-  dynamic targetTotalCost;
+
+  /// 預定總金額
+  num targetTotalCost = 0;
+
+  /// 明細資料列表
   List<CurrencytargetDtl>? currencytargetDtlList;
 
   Currencytarget(
@@ -20,7 +34,7 @@ class Currencytarget {
       this.currency,
       this.dateBeg,
       this.dateEnd,
-      this.targetTotalCost,
+      this.targetTotalCost = 0,
       this.currencytargetDtlList}) {
     currencytargetDtlList ??= <CurrencytargetDtl>[];
   }
@@ -51,6 +65,114 @@ class Currencytarget {
     }
     return data;
   }
+
+  // copyWith
+  Currencytarget copyWith(Currencytarget setItem) {
+    return Currencytarget(
+      groupID: setItem.groupID ?? groupID,
+      groupName: setItem.groupName ?? groupName,
+      currency: setItem.currency ?? currency,
+      dateBeg: setItem.dateBeg ?? dateBeg,
+      dateEnd: setItem.dateEnd ?? dateEnd,
+      targetTotalCost: setItem.targetTotalCost,
+      currencytargetDtlList:
+          setItem.currencytargetDtlList ?? currencytargetDtlList,
+    );
+  }
+
+  /// 計算總金額(外幣)
+  double getTotalCost() {
+    double totalCost = 0;
+    for (var item in currencytargetDtlList!) {
+      totalCost += item.exchangeCost ?? 0;
+    }
+    return totalCost;
+  }
+
+  /// 計算總金額
+  int getTwTotalCost() {
+    int totalCost = 0;
+    for (var item in currencytargetDtlList!) {
+      totalCost += item.twCost ?? 0;
+    }
+    return totalCost;
+  }
+
+  /// 金額顯示加入千分位
+  static String getThousandthsCost(num showCost) {
+    String result = '0';
+    if (showCost > 0) {
+      String strCost = Currencytarget.currentNumber(showCost.toString());
+      num numValue = num.tryParse(strCost) ?? 0;
+      String strValue = numValue.toString();
+      var formatter = NumberFormat('0,000');
+
+      // 整數部分
+      String beforePoint = '';
+      // 小數部分
+      String afterPoint = '';
+
+      // 取得整數/小數部分數字
+      if (strValue.contains('.')) {
+        int pointIndex = strValue.indexOf('.');
+        beforePoint = strValue.substring(0, pointIndex);
+        afterPoint = strValue.substring(pointIndex + 1, strValue.length);
+      } else {
+        beforePoint = strValue;
+      }
+
+      // 整數
+      int intBeforePoint = int.tryParse(beforePoint) ?? 0;
+
+      // 小數
+      dynamic doubleAfterPoint = double.tryParse(('0.$afterPoint')) ?? 0.0;
+
+      if (doubleAfterPoint > 0) {
+        if (intBeforePoint >= 1000) {
+          result = '${formatter.format(intBeforePoint)}.$afterPoint';
+        } else {
+          result = '$intBeforePoint.$afterPoint';
+        }
+      } else {
+        result = formatter.format(intBeforePoint);
+      }
+    }
+    return result;
+  }
+
+  /// 調整數字顯示格式, 10.0 => 10, 010.50 => 10.5
+  static String currentNumber(String inputValue) {
+    String result = '0';
+
+    // 整數部分
+    String beforePoint = '';
+    // 小數部分
+    String afterPoint = '';
+
+    // 取得整數/小數部分數字
+    if (inputValue.contains('.')) {
+      int pointIndex = inputValue.indexOf('.');
+      beforePoint = inputValue.substring(0, pointIndex);
+      afterPoint = inputValue.substring(pointIndex + 1, inputValue.length);
+    } else {
+      beforePoint = inputValue;
+    }
+
+    // 整數
+    int intBeforePoint = int.tryParse(beforePoint) ?? 0;
+
+    // 小數
+    dynamic doubleAfterPoint = double.tryParse(('0.$afterPoint')) ?? 0.0;
+
+    if (doubleAfterPoint > 0) {
+      dynamic curNum = intBeforePoint + doubleAfterPoint;
+      result = curNum.toString();
+    } else {
+      result = intBeforePoint.toString();
+    }
+
+    return result;
+  }
 }
 
 class CurrencytargetDtl {
@@ -60,7 +182,7 @@ class CurrencytargetDtl {
   String? exchangeDate;
 
   /// 台幣金額
-  dynamic twCost;
+  int? twCost;
 
   /// 兌換匯率
   dynamic exchangeRate;
@@ -112,40 +234,46 @@ class CurrencyStateNotifier extends StateNotifier<List<Currencytarget>> {
   }
   void loadFromSharedPreferences() async {
     final prefs = await SharedPreferences.getInstance();
-    List<String>? currencytargetList =
-        prefs.getStringList('currencytargetList');
+    List<String>? dataStrList = prefs.getStringList('currencytargetList');
 
-    if (currencytargetList == null)
+    if (dataStrList == null) {
       state = [];
-    else {
-      state = currencytargetList.map((currencytarget) {
+    } else {
+      state = dataStrList.map((currencytarget) {
         return Currencytarget.fromJson(jsonDecode(currencytarget));
       }).toList();
     }
   }
 
-  void add(int gid) {
-    state = [
-      ...state,
-      Currencytarget(groupID: gid),
-    ];
+  void add(Currencytarget setItem) {
+    state = [...state, setItem];
     saveToSharedPreferences();
   }
 
-  void addMultiple(List<Currencytarget> currencytarget) {
+  void change(Currencytarget setItem) {
+    state = state
+        .map((currencytarget) => currencytarget.groupID == setItem.groupID
+            ? currencytarget.copyWith(setItem)
+            : currencytarget)
+        .toList();
+    //print('state => gid: ${setItem.groupID}, name: ${setItem.groupName}');
+    saveToSharedPreferences();
+  }
+
+  /*void addMultiple(List<Currencytarget> currencytarget) {
     state = [
       ...state,
       ...currencytarget,
     ];
     saveToSharedPreferences();
-  }
+  }*/
 
   /*void toggle(int gid) {
-    /*state = state
+    state = state
         .map((currencytarget) => currencytarget.groupID == gid
             ? currencytarget.copyWith(isDone: !currencytarget.isDone)
             : currencytarget)
-        .toList();*/
+        .toList();
     saveToSharedPreferences();
   }*/
 

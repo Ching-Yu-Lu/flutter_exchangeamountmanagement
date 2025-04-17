@@ -1,14 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_exchangeamountmanagement/data/currencyTarget.dart';
 import 'package:flutter_exchangeamountmanagement/data/exchangerate.dart';
 import 'package:flutter_exchangeamountmanagement/screens/addrategroup_screen.dart';
 import 'package:flutter_exchangeamountmanagement/screens/modifygroupcontentdtl_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ModifygroupcontentScreen extends ConsumerStatefulWidget {
+  /// 群組ID
   final int groupID;
+
+  /// 幣別匯率列表
   final List<FetchAndExtract> currencyRateList;
+
+  /// 目標資料列表
+  //final List<Currencytarget> currencyTargetList;
+
   const ModifygroupcontentScreen(
-      {super.key, required this.groupID, required this.currencyRateList});
+      {super.key,
+      required this.groupID,
+      required this.currencyRateList /*,
+      required this.currencyTargetList*/
+      });
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
@@ -19,6 +31,21 @@ class ModifygroupcontentScreenState
     extends ConsumerState<ModifygroupcontentScreen> {
   @override
   Widget build(BuildContext context) {
+    // 群組資料
+    final List<Currencytarget> currencyTargetDataList =
+        ref.watch(currencyTargetProvider);
+
+    /*Currencytarget showData = widget.currencyTargetList
+        .firstWhere((element) => element.groupID == widget.groupID);*/
+    Currencytarget showData = currencyTargetDataList
+        .firstWhere((element) => element.groupID == widget.groupID);
+
+    /// 總金額
+    double totalCost = showData.getTotalCost();
+
+    /// 達成率
+    int persent = ((totalCost / showData.targetTotalCost) * 100).toInt();
+
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -27,32 +54,33 @@ class ModifygroupcontentScreenState
             Expanded(
                 child: Row(
               children: [
-                Text('Item ${widget.groupID}'),
+                Text('ID:${showData.groupID}, 名稱:${showData.groupName}'),
                 IconButton(
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => AddrategroupScreen(
-                              currencyRateList: widget.currencyRateList),
+                              groupID: widget.groupID,
+                              currencyRateList: widget.currencyRateList,
+                              currencyTargetList:
+                                  currencyTargetDataList /*widget.currencyTargetList*/),
                         ),
                       );
                     },
                     icon: Icon(Icons.edit))
               ],
             )),
-            IconButton(onPressed: () {}, icon: Icon(Icons.delete_forever))
-            /*ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-                child: Text(
-                  '設定變更',
-                  style: TextStyle(color: Colors.white),
-                )),*/
+            IconButton(
+                onPressed: () {
+                  setState(() {
+                    // 刪除資料
+                    ref
+                        .read(currencyTargetProvider.notifier)
+                        .remove(showData.groupID ?? 0);
+                    Navigator.of(context).pop();
+                  });
+                },
+                icon: Icon(Icons.delete_forever))
           ],
         ),
       ),
@@ -69,21 +97,23 @@ class ModifygroupcontentScreenState
                   children: [
                     SizedBox(
                       height: 20,
-                      child: Text("預定日期: 2025-01-01 ~ 2025-06-01"),
+                      child: Text(
+                          "預定日期: ${showData.dateBeg} ~ ${showData.dateEnd}"),
                     ),
                     SizedBox(
                       height: 20,
-                      child: Text("目標金額: 10000/100000(10%) JPY"),
+                      child: Text(
+                          "目標金額: ${Currencytarget.getThousandthsCost(totalCost)}/${Currencytarget.getThousandthsCost(showData.targetTotalCost)} ($persent%) ${showData.currency}"),
                     ),
                     SizedBox(
                       height: 20,
-                      child: Text("已兌換金額: 2500 TWD"),
+                      child: Text("已兌換金額: ${showData.getTwTotalCost()} TWD"),
                     ),
                   ],
                 )),
               ],
             ),
-            /* 灰色格線 */
+            /* 灰色格線 & 明細新增 */
             Row(
               children: [
                 Expanded(
@@ -94,17 +124,25 @@ class ModifygroupcontentScreenState
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => ModifygroupcontentdtlScreen(
-                              groupID: widget.groupID),
+                              groupID: widget.groupID,
+                              dtlID: 0,
+                              currencyRateList: widget.currencyRateList,
+                              currencyTargetList:
+                                  currencyTargetDataList /*widget.currencyTargetList*/),
                         ),
                       );
                     },
                     icon: Icon(Icons.playlist_add))
               ],
             ),
+            /* 明細列表 */
             Expanded(
               child: ListView.builder(
-                itemCount: 10,
+                itemCount: showData.currencytargetDtlList!.length,
                 itemBuilder: (context, index) {
+                  CurrencytargetDtl dtlItem =
+                      showData.currencytargetDtlList![index];
+
                   return ListTile(
                       title: Text(
                         "兌換日期 2025-01-02",
