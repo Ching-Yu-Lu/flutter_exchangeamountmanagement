@@ -267,110 +267,143 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ],
             )),
-        body: Padding(
-            padding: EdgeInsets.only(left: 15, right: 15),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        "待完成: ${unCompletedList.length}",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 18),
-                      ),
+        body: Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: 15, right: 15),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      "待完成: ${unCompletedList.length}",
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                     ),
-                    Expanded(
-                        child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          "顯示已完成",
-                          style: TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.bold),
-                        ),
-                        Switch(
-                            value: true, //widget.switchStatus,
-                            onChanged: (v) {
-                              setState(() {
-                                /*ref
+                  ),
+                  Expanded(
+                      child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        "顯示已完成",
+                        style: TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.bold),
+                      ),
+                      Switch(
+                          value: true, //widget.switchStatus,
+                          onChanged: (v) {
+                            setState(() {
+                              /*ref
                                     .read(isShowAllProvider.notifier)
                                     .toggle(!widget.switchStatus);*/
-                                //print("BuildSwitchState Change Stataus is: ${widget.switchStatus}");
-                              });
-                            })
-                      ],
-                    ))
-                  ],
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: currencyTargetDataList.length,
-                    itemBuilder: (context, index) {
-                      Currencytarget showItem = currencyTargetDataList[index];
+                              //print("BuildSwitchState Change Stataus is: ${widget.switchStatus}");
+                            });
+                          })
+                    ],
+                  ))
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: currencyTargetDataList.length,
+                itemBuilder: (context, index) {
+                  Currencytarget showItem = currencyTargetDataList[index];
 
-                      /// 群組編號
-                      int gid = showItem.groupID ?? 0;
+                  /// 群組編號
+                  int gid = showItem.groupID ?? 0;
 
-                      /// 總金額
-                      double totalCost = showItem.getTotalCost();
+                  /// 總金額
+                  double totalCost = showItem.getTotalCost();
 
-                      /// 達成率
-                      int persent =
-                          ((totalCost / showItem.targetTotalCost) * 100)
-                              .toInt();
-                      return ListTile(
-                          /* 名稱 */
-                          title: Text(
-                              "ID: ${showItem.groupID}, 名稱: ${showItem.groupName}"),
-                          subtitle: Column(
+                  /// 達成率
+                  int persent =
+                      ((totalCost / showItem.targetTotalCost) * 100).toInt();
+                  return Card(
+                    margin:
+                        const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                    child: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          /// 資料顯示區塊
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "名稱: ${showItem.groupName}",
+                                  style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    const Text("預定日期: "),
+                                    Flexible(
+                                      child: Text(
+                                          "${showItem.dateBeg} ~ ${showItem.dateEnd}"),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    const Text("目標金額: "),
+                                    Flexible(
+                                      child: Text(
+                                        "$totalCost/${Currencytarget.getThousandthsCost(showItem.targetTotalCost)} ($persent%) ${showItem.currency}",
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          /// 按鈕區塊
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              /* 預定日期 */
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text("預定日期: "),
-                                  Expanded(
-                                      child: Text(
-                                          "${showItem.dateBeg} ~ ${showItem.dateEnd}"))
-                                ],
+                              /// 編輯按鈕
+                              IconButton(
+                                icon: const Icon(Icons.edit, size: 20),
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          ModifygroupcontentScreen(
+                                        groupID: gid,
+                                        currencyRateList: currencyRateDataList,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
-                              /* 目標金額 */
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text("目標金額: "),
-                                  Expanded(
-                                      child: Text(
-                                          "$totalCost/${Currencytarget.getThousandthsCost(showItem.targetTotalCost)} ($persent%) ${showItem.currency}"))
-                                ],
+
+                              /// 刪除按鈕
+                              IconButton(
+                                icon: const Icon(Icons.delete, size: 20),
+                                onPressed: () {
+                                  setState(() {
+                                    ref
+                                        .read(currencyTargetProvider.notifier)
+                                        .remove(gid);
+                                  });
+                                },
                               ),
                             ],
                           ),
-                          trailing: IconButton(
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => ModifygroupcontentScreen(
-                                        groupID: gid,
-                                        currencyRateList:
-                                            currencyRateDataList /*,
-                                            currencyTargetList:
-                                                currencyTargetDataList*/
-                                        ),
-                                  ),
-                                );
-                              },
-                              icon: Icon(
-                                Icons.edit,
-                                size: 20,
-                              )));
-                    },
-                  ),
-                )
-              ],
-            )));
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            )
+          ],
+        ));
   }
 }

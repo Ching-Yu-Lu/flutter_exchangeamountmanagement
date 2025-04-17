@@ -53,23 +53,22 @@ class ModifygroupcontentScreenState
           children: [
             Expanded(
                 child: Row(
-              children: [
-                Text('ID:${showData.groupID}, 名稱:${showData.groupName}'),
-                IconButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => AddrategroupScreen(
-                              groupID: widget.groupID,
-                              currencyRateList: widget.currencyRateList,
-                              currencyTargetList:
-                                  currencyTargetDataList /*widget.currencyTargetList*/),
-                        ),
-                      );
-                    },
-                    icon: Icon(Icons.edit))
-              ],
+              children: [Text('${showData.groupName}')],
             )),
+            IconButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => AddrategroupScreen(
+                          groupID: widget.groupID,
+                          currencyRateList: widget.currencyRateList,
+                          currencyTargetList:
+                              currencyTargetDataList /*widget.currencyTargetList*/),
+                    ),
+                  );
+                },
+                icon: Icon(Icons
+                    .edit)) /*,
             IconButton(
                 onPressed: () {
                   setState(() {
@@ -80,7 +79,7 @@ class ModifygroupcontentScreenState
                     Navigator.of(context).pop();
                   });
                 },
-                icon: Icon(Icons.delete_forever))
+                icon: Icon(Icons.delete_forever))*/
           ],
         ),
       ),
@@ -89,30 +88,34 @@ class ModifygroupcontentScreenState
         child: Column(
           children: [
             /* 兌換總資訊 */
-            Row(
-              children: [
-                Expanded(
-                    child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      height: 20,
-                      child: Text(
-                          "預定日期: ${showData.dateBeg} ~ ${showData.dateEnd}"),
-                    ),
-                    SizedBox(
-                      height: 20,
-                      child: Text(
-                          "目標金額: ${Currencytarget.getThousandthsCost(totalCost)}/${Currencytarget.getThousandthsCost(showData.targetTotalCost)} ($persent%) ${showData.currency}"),
-                    ),
-                    SizedBox(
-                      height: 20,
-                      child: Text("已兌換金額: ${showData.getTwTotalCost()} TWD"),
-                    ),
-                  ],
-                )),
-              ],
-            ),
+            Card(
+                child: Padding(
+              padding: EdgeInsets.all(5),
+              child: Row(
+                children: [
+                  Expanded(
+                      child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        height: 20,
+                        child: Text(
+                            "預定日期: ${showData.dateBeg} ~ ${showData.dateEnd}"),
+                      ),
+                      SizedBox(
+                        height: 20,
+                        child: Text(
+                            "目標金額: ${Currencytarget.getThousandthsCost(totalCost)}/${Currencytarget.getThousandthsCost(showData.targetTotalCost)} ($persent%) ${showData.currency}"),
+                      ),
+                      SizedBox(
+                        height: 20,
+                        child: Text("已兌換金額: ${showData.getTwTotalCost()} TWD"),
+                      ),
+                    ],
+                  )),
+                ],
+              ),
+            )),
             /* 灰色格線 & 明細新增 */
             Row(
               children: [
