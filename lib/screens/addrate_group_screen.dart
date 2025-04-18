@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_exchangeamountmanagement/data/currencyTarget.dart';
-import 'package:flutter_exchangeamountmanagement/data/exchangerate.dart';
-import 'package:flutter_exchangeamountmanagement/formfields/InputTextFormField.dart';
-import 'package:flutter_exchangeamountmanagement/formfields/messageAlert';
+import 'package:flutter_exchangeamountmanagement/data/currency_target.dart';
+import 'package:flutter_exchangeamountmanagement/data/exchange_rate.dart';
+import 'package:flutter_exchangeamountmanagement/formFields/input_textformfield.dart';
+import 'package:flutter_exchangeamountmanagement/formfields/message_alert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:date_format/date_format.dart';
 
@@ -410,13 +410,18 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
                 } else {
                   int gid = 1;
 
-                  //print(widget.groupID);
+                  // 編輯
                   if (widget.groupID >= 0) {
                     gid = widget.groupID;
-                  } else {
+                  }
+                  // 新增
+                  else {
                     int listLength = 0;
                     if (widget.currencyTargetList.isNotEmpty) {
-                      listLength = widget.currencyTargetList.length;
+                      Currencytarget lastItem = widget.currencyTargetList
+                          .reduce((item1, item2) =>
+                              item1.groupID > item2.groupID ? item1 : item2);
+                      listLength = lastItem.groupID;
                     }
 
                     if (listLength > 0) {

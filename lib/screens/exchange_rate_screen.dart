@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_exchangeamountmanagement/data/exchangerate.dart';
+import 'package:flutter_exchangeamountmanagement/data/exchange_rate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ExchangerateScreen extends ConsumerStatefulWidget {

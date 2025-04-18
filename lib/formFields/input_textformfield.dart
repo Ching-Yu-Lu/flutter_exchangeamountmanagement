@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_exchangeamountmanagement/data/currencyTarget.dart';
+import 'package:flutter_exchangeamountmanagement/data/currency_target.dart';
 
 class TextFormFieldDouble extends StatefulWidget {
   /// 標題

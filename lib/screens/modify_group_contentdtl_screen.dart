@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_exchangeamountmanagement/data/currencyTarget.dart';
-import 'package:flutter_exchangeamountmanagement/data/exchangerate.dart';
-import 'package:flutter_exchangeamountmanagement/formfields/InputTextFormField.dart';
+import 'package:flutter_exchangeamountmanagement/data/currency_target.dart';
+import 'package:flutter_exchangeamountmanagement/data/exchange_rate.dart';
+import 'package:flutter_exchangeamountmanagement/formFields/input_textformfield.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ModifygroupcontentdtlScreen extends ConsumerStatefulWidget {

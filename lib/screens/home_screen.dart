@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_exchangeamountmanagement/data/currencyTarget.dart';
-import 'package:flutter_exchangeamountmanagement/data/exchangerate.dart';
-import 'package:flutter_exchangeamountmanagement/screens/addrategroup_screen.dart';
-import 'package:flutter_exchangeamountmanagement/screens/exchangerate_screen.dart';
-import 'package:flutter_exchangeamountmanagement/screens/modifygroupcontent_screen.dart';
+import 'package:flutter_exchangeamountmanagement/data/currency_target.dart';
+import 'package:flutter_exchangeamountmanagement/data/exchange_rate.dart';
+import 'package:flutter_exchangeamountmanagement/screens/addrate_group_screen.dart';
+import 'package:flutter_exchangeamountmanagement/screens/exchange_rate_screen.dart';
+import 'package:flutter_exchangeamountmanagement/screens/modify_group_content_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -311,7 +311,7 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                   Currencytarget showItem = currencyTargetDataList[index];
 
                   /// 群組編號
-                  int gid = showItem.groupID ?? 0;
+                  int gid = showItem.groupID;
 
                   /// 總金額
                   double totalCost = showItem.getTotalCost();
@@ -333,7 +333,7 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  "名稱: ${showItem.groupName}",
+                                  "ID: ${showItem.groupID},名稱: ${showItem.groupName}",
                                   style: const TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold),

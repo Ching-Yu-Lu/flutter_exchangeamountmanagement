@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_exchangeamountmanagement/data/currencyTarget.dart';
-import 'package:flutter_exchangeamountmanagement/data/exchangerate.dart';
-import 'package:flutter_exchangeamountmanagement/screens/addrategroup_screen.dart';
-import 'package:flutter_exchangeamountmanagement/screens/modifygroupcontentdtl_screen.dart';
+import 'package:flutter_exchangeamountmanagement/data/currency_target.dart';
+import 'package:flutter_exchangeamountmanagement/data/exchange_rate.dart';
+import 'package:flutter_exchangeamountmanagement/screens/addrate_group_screen.dart';
+import 'package:flutter_exchangeamountmanagement/screens/modify_group_contentdtl_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ModifygroupcontentScreen extends ConsumerStatefulWidget {
@@ -51,10 +51,7 @@ class ModifygroupcontentScreenState
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Expanded(
-                child: Row(
-              children: [Text('${showData.groupName}')],
-            )),
+            Expanded(child: Text('${showData.groupName}')),
             IconButton(
                 onPressed: () {
                   Navigator.of(context).push(
@@ -143,8 +140,7 @@ class ModifygroupcontentScreenState
               child: ListView.builder(
                 itemCount: showData.currencytargetDtlList!.length,
                 itemBuilder: (context, index) {
-                  CurrencytargetDtl dtlItem =
-                      showData.currencytargetDtlList![index];
+                  //CurrencytargetDtl dtlItem = showData.currencytargetDtlList![index];
 
                   return ListTile(
                       title: Text(

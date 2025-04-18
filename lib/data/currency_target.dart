@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class Currencytarget {
   /// 群組ID
-  int? groupID;
+  late int groupID;
 
   /// 群組名稱
   String? groupName;
@@ -29,7 +29,7 @@ class Currencytarget {
   List<CurrencytargetDtl>? currencytargetDtlList;
 
   Currencytarget(
-      {this.groupID = 0,
+      {required this.groupID,
       this.groupName,
       this.currency,
       this.dateBeg,
@@ -40,7 +40,7 @@ class Currencytarget {
   }
 
   Currencytarget.fromJson(Map<String, dynamic> json) {
-    groupID = json['groupID'];
+    groupID = json['groupID'] ?? 0;
     groupName = json['groupName'];
     currency = json['currency'];
     dateBeg = json['dateBeg'];
@@ -69,7 +69,7 @@ class Currencytarget {
   // copyWith
   Currencytarget copyWith(Currencytarget setItem) {
     return Currencytarget(
-      groupID: setItem.groupID ?? groupID,
+      groupID: setItem.groupID,
       groupName: setItem.groupName ?? groupName,
       currency: setItem.currency ?? currency,
       dateBeg: setItem.dateBeg ?? dateBeg,
@@ -271,16 +271,18 @@ class CurrencyStateNotifier extends StateNotifier<List<Currencytarget>> {
     //print('state => gid: ${setItem.groupID}, name: ${setItem.groupName}');
     saveToSharedPreferences();
   }
+/*
+  void changeDtl(Currencytarget setItem, CurrencytargetDtl dtlItem) {
+    
 
-  void changeDtl(Currencytarget setItem) {
     state = state
-        .map((currencytarget) => currencytarget.groupID == setItem.groupID
-            ? currencytarget.copyWith(setItem)
-            : currencytarget)
+        .map((currencytarget) => () {
+          return [];
+        })
         .toList();
     //print('state => gid: ${setItem.groupID}, name: ${setItem.groupName}');
     saveToSharedPreferences();
-  }
+  }*/
 
   /*void addMultiple(List<Currencytarget> currencytarget) {
     state = [
@@ -328,26 +330,26 @@ final currencyTargetProvider =
 class CurrencytargetDtlNotifier extends StateNotifier<List<CurrencytargetDtl>> {
   CurrencytargetDtlNotifier() : super([]);
 
-  void addnote(CurrencytargetDtl setItem) {
-    state = [...state, setItem];
+  void addnote(CurrencytargetDtl setDtlItem) {
+    state = [...state, setDtlItem];
     //print("===============> addnote");
   }
 
-  void change(CurrencytargetDtl setItem) {
+  void change(CurrencytargetDtl setDtlItem) {
     state = state
-        .map((currencytarget) => currencytarget.dtlId == setItem.dtlId
-            ? currencytarget.copyWith(setItem)
+        .map((currencytarget) => currencytarget.dtlId == setDtlItem.dtlId
+            ? currencytarget.copyWith(setDtlItem)
             : currencytarget)
         .toList();
   }
 
-  void removenote(CurrencytargetDtl setItem) {
-    var newList = state.where((x) => x.dtlId != setItem.dtlId);
+  void removenote(int dtlId) {
+    var newList = state.where((x) => x.dtlId != dtlId);
     state = newList.toList();
   }
 }
 
-final noteDataProvider =
+final currencytargetDtlProvider =
     StateNotifierProvider<CurrencytargetDtlNotifier, List<CurrencytargetDtl>>(
         (ref) {
   return CurrencytargetDtlNotifier();
