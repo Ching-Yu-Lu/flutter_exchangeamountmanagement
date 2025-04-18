@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_exchangeamountmanagement/data/currencyTarget.dart';
 import 'package:flutter_exchangeamountmanagement/data/exchangerate.dart';
+import 'package:flutter_exchangeamountmanagement/formfields/InputTextFormField.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ModifygroupcontentdtlScreen extends ConsumerStatefulWidget {
@@ -31,7 +32,55 @@ class ModifygroupcontentdtlScreen extends ConsumerStatefulWidget {
 class ModifygroupcontentScreendtlState
     extends ConsumerState<ModifygroupcontentdtlScreen> {
   int pickerRangeDays = 720;
+
+  // 輸入資料
   DateTime addDate = DateTime.now().add(const Duration(days: -30));
+  num twCost = 0;
+  num costRate = 0;
+  num curCost = 0;
+
+  // 幣別資料
+  String currencyCode = '';
+  String currencyCodeToName = '';
+
+  // 焦點元件
+  FocusNode twCostfocusNode = FocusNode();
+  FocusNode costRatefocusNode = FocusNode();
+  FocusNode curCostfocusNode = FocusNode();
+
+  // 控制元件
+  TextEditingController twCostController = TextEditingController(text: '0');
+  TextEditingController costRateController = TextEditingController(text: '0');
+  TextEditingController curCostController = TextEditingController(text: '0');
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.currencyTargetList.isNotEmpty &&
+        widget.currencyRateList.isNotEmpty) {
+      /// 取得目標資料
+      Currencytarget defaultData = widget.currencyTargetList
+          .firstWhere((element) => element.groupID == widget.groupID);
+
+      /// 找到目標幣別資料
+      FetchAndExtract defaultFetch = widget.currencyRateList.firstWhere(
+          (element) => element.unitCurrency == defaultData.currency);
+
+      costRate = defaultFetch.cashSellingRate;
+      if (costRate == 0) {
+        costRate = defaultFetch.spotSellingRate;
+      }
+
+      // 初始化幣別資料
+      currencyCode = defaultFetch.unitCurrency;
+      currencyCodeToName = defaultFetch.currencyCodeToName();
+    }
+
+    twCostController.text = twCost.toString();
+    costRateController.text = costRate.toString();
+    curCostController.text = curCost.toString();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,88 +159,111 @@ class ModifygroupcontentScreendtlState
             /* 台幣金額 */
             Row(
               children: [
-                Expanded(
-                    child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('台幣金額(Input)'),
-                    TextFormField(
-                      initialValue: 'enteredLastName',
-                      // border
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          //enteredLastName = value;
-                        });
-                      },
-                    ),
-                  ],
-                ))
+                TextFormFieldDouble(
+                  title: '台幣金額',
+                  textValue: twCost.toString(),
+                  decimalLength: 0,
+                  focusNode: twCostfocusNode,
+                  textEditingController: twCostController,
+                  onChanged: (val) {
+                    setState(() {
+                      twCost = val.isEmpty ? 0 : double.parse(val);
+                      //print('onChanged textValue: $inputTargetTotalCost');
+                      curCost =
+                          computingCurCost(currencyCode, twCost, costRate);
+                      //print('onChanged curCost: $curCost');
+                      curCostController.text =
+                          Currencytarget.currentNumber(curCost.toString());
+                    });
+                  },
+                  onSaved: (val) {
+                    setState(() {
+                      twCost = val.isEmpty ? 0 : double.parse(val);
+                      twCostController.value = TextEditingValue(text: val);
+                      //print('onSaved textValue: $inputTargetTotalCost');
+                      curCost =
+                          computingCurCost(currencyCode, twCost, costRate);
+                      //print('onSaved curCost: $curCost');
+                      curCostController.text =
+                          Currencytarget.currentNumber(curCost.toString());
+                    });
+                  },
+                )
               ],
             ),
             SizedBox(height: 15),
+            /* 兌換幣別 */
             Row(
               children: [
                 Text(
-                  '兌換幣別: JPY',
+                  '兌換幣別: $currencyCodeToName',
                   style: TextStyle(fontSize: 20),
                 ),
               ],
             ),
             SizedBox(height: 15),
+            /* 匯率 */
             Row(
               children: [
-                Expanded(
-                    child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('匯率(Input:Default)'),
-                    TextFormField(
-                      initialValue: 'enteredLastName',
-                      // border
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          //enteredLastName = value;
-                        });
-                      },
-                    ),
-                  ],
-                ))
+                TextFormFieldDouble(
+                  title: '匯率',
+                  textValue: costRate.toString(),
+                  focusNode: costRatefocusNode,
+                  textEditingController: costRateController,
+                  onChanged: (val) {
+                    setState(() {
+                      costRate = val.isEmpty ? 0 : double.parse(val);
+                      //print('onChanged textValue: $inputTargetTotalCost');
+                      curCost =
+                          computingCurCost(currencyCode, twCost, costRate);
+                      curCostController.text =
+                          Currencytarget.currentNumber(curCost.toString());
+                    });
+                  },
+                  onSaved: (val) {
+                    setState(() {
+                      costRate = val.isEmpty ? 0 : double.parse(val);
+                      costRateController.value = TextEditingValue(text: val);
+                      //print('onSaved textValue: $inputTargetTotalCost');
+                      curCost =
+                          computingCurCost(currencyCode, twCost, costRate);
+                      curCostController.text =
+                          Currencytarget.currentNumber(curCost.toString());
+                    });
+                  },
+                )
               ],
             ),
             SizedBox(height: 10),
+            /* 外幣金額 */
             Row(
               children: [
-                Expanded(
-                    child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('外幣金額(Input:Default)'),
-                    TextFormField(
-                      initialValue: 'enteredLastName',
-                      // border
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          //enteredLastName = value;
-                        });
-                      },
-                    ),
-                  ],
-                ))
+                TextFormFieldDouble(
+                  title: '外幣金額',
+                  textValue: curCost.toString(),
+                  decimalLength:
+                      FetchAndExtract.currencyDecimalPlaces(currencyCode),
+                  focusNode: curCostfocusNode,
+                  textEditingController: curCostController,
+                  onChanged: (val) {
+                    setState(() {
+                      curCost = val.isEmpty ? 0 : double.parse(val);
+                      //print('onChanged textValue: $inputTargetTotalCost');
+                    });
+                  },
+                  onSaved: (val) {
+                    setState(() {
+                      curCost = val.isEmpty ? 0 : double.parse(val);
+                      curCostController.value = TextEditingValue(text: val);
+                      //print('onSaved textValue: $inputTargetTotalCost');
+                    });
+                  },
+                )
               ],
             ),
           ],
         ),
       ),
-
       /* 固定在底部按鈕 */
       bottomNavigationBar: BottomAppBar(
         color: Colors.white,
@@ -215,4 +287,22 @@ class ModifygroupcontentScreendtlState
       ),
     );
   }
+}
+
+///計算外幣金額
+num computingCurCost(String currencyCode, num twCost, num costRate) {
+  num rt = 0;
+
+  if (costRate != 0) {
+    //計算兌換後外幣
+    num curCost = twCost / costRate;
+
+    //保留小數點後 N 位數
+    int decimalPlacesNum = FetchAndExtract.currencyDecimalPlaces(currencyCode);
+    //取得計算後外幣金額(小數N位數)文字
+    String strCurCost = curCost.toStringAsFixed(decimalPlacesNum);
+    rt = num.parse(strCurCost);
+  }
+
+  return rt;
 }

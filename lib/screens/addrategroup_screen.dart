@@ -160,6 +160,17 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
                               onChanged: (v) {
                                 setState(() {
                                   inputCurrency = v as String;
+
+                                  // 根據幣別調整小數後的位數
+                                  inputTargetTotalCost = currentDecimalLength(
+                                      inputTargetTotalCost.toString(),
+                                      decimalLength:
+                                          FetchAndExtract.currencyDecimalPlaces(
+                                              inputCurrency));
+                                  textEditingControllerTargetCost.value =
+                                      TextEditingValue(
+                                          text:
+                                              inputTargetTotalCost.toString());
                                 });
                                 // wait 1 second
                                 /*Future.delayed(Duration(seconds: 1), () {
@@ -329,6 +340,8 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
                 TextFormFieldDouble(
                   title: '目標金額',
                   textValue: inputTargetTotalCost.toString(),
+                  decimalLength:
+                      FetchAndExtract.currencyDecimalPlaces(inputCurrency),
                   focusNode: focusNodeTargetCost,
                   textEditingController: textEditingControllerTargetCost,
                   onChanged: (val) {

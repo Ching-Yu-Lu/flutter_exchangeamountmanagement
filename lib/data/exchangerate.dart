@@ -10,16 +10,16 @@ class FetchAndExtract {
   /// 幣別
   final String targetCurrency;
 
-  /// 即期買入
+  /// 現金買入
   final double cashBuyingRate;
 
-  /// 即期賣出
+  /// 現金賣出
   final double cashSellingRate;
 
-  /// 現金買入
+  /// 即期買入
   final double spotBuyingRate;
 
-  /// 現金賣出
+  /// 即期賣出
   final double spotSellingRate;
 
   // 銀行名稱
@@ -55,11 +55,12 @@ class FetchAndExtract {
 "updateTime": "2023-10-01 12:00:00",
  */
 
-  /// 外幣幣別代碼轉名稱
+  /// 取得外幣名稱
   String currencyCodeToName() {
     return FetchAndExtract.currencyCodeToNameStatic(unitCurrency);
   }
 
+  /// 外幣幣別【代碼】轉【名稱】
   static String currencyCodeToNameStatic(String currencyCode) {
     String rt = '';
 
@@ -189,7 +190,7 @@ class FetchAndExtract {
     return rt;
   }
 
-  /// 外幣幣別名稱轉代碼
+  /// 外幣幣別【名稱】轉【代碼】
   static String currencyNameToCode(String currencyName) {
     String rt = '';
 
@@ -318,6 +319,133 @@ class FetchAndExtract {
     }
     return rt;
   }
+
+  /// 外幣幣別是小數後幾位
+  static int currencyDecimalPlaces(String currencyCode) {
+    int rt = 0;
+
+    switch (currencyCode) {
+      case 'USD':
+        rt = 2;
+        break;
+      case 'TWD':
+        rt = 0;
+        break;
+      case 'JPY':
+        rt = 0;
+        break;
+      case 'CNY':
+        rt = 2;
+        break;
+      case 'HKD':
+        rt = 2;
+        break;
+      case 'EUR':
+        rt = 2;
+        break;
+      case 'GBP':
+        rt = 2;
+        break;
+      case 'AUD':
+        rt = 2;
+        break;
+      case 'CAD':
+        rt = 2;
+        break;
+      case 'NZD':
+        rt = 2;
+        break;
+      case 'SGD':
+        rt = 2;
+        break;
+      case 'CHF':
+        rt = 2;
+        break;
+      case 'THB':
+        rt = 2;
+        break;
+      case 'MYR':
+        rt = 2;
+        break;
+      case 'PHP':
+        rt = 2;
+        break;
+      case 'IDR':
+        rt = 0;
+        break;
+      case 'VND':
+        rt = 0;
+        break;
+      case 'KRW':
+        rt = 0;
+        break;
+      case 'INR':
+        rt = 2;
+        break;
+      case 'BRL':
+        rt = 2;
+        break;
+      case 'MXN':
+        rt = 2;
+        break;
+      case 'ZAR':
+        rt = 2;
+        break;
+      case 'RUB':
+        rt = 0;
+        break;
+      case 'TRY':
+        rt = 2;
+        break;
+      case 'AED':
+        rt = 2;
+        break;
+      case 'SAR':
+        rt = 2;
+        break;
+      case 'NOK':
+        rt = 2;
+        break;
+      case 'SEK':
+        rt = 2;
+        break;
+      case 'DKK':
+        rt = 2;
+        break;
+      case 'PLN':
+        rt = 2;
+        break;
+      case 'CZK':
+        rt = 2;
+        break;
+      case 'HUF':
+        rt = 0;
+        break;
+      case 'ILS':
+        rt = 2;
+        break;
+      case 'CLP':
+        rt = 0;
+        break;
+      case 'COP':
+        rt = 2;
+        break;
+      case 'PEN':
+        rt = 2;
+        break;
+      case 'ARS':
+        rt = 2;
+        break;
+      case 'DOP':
+        rt = 2;
+        break;
+      case 'BHD':
+        rt = 2;
+        break;
+    }
+
+    return rt;
+  } // */
 
   // fromJsonList
   static List<FetchAndExtract> fromJsonList(List<dynamic> list) {

@@ -176,6 +176,7 @@ class Currencytarget {
 }
 
 class CurrencytargetDtl {
+  /// 編號
   int? dtlId;
 
   /// 兌換日期
@@ -185,16 +186,16 @@ class CurrencytargetDtl {
   int? twCost;
 
   /// 兌換匯率
-  dynamic exchangeRate;
-
-  /// 即期賣出
-  dynamic cashSellingRate;
+  num? exchangeRate;
 
   /// 現金賣出
-  dynamic spotSellingRate;
+  num? cashSellingRate;
+
+  /// 即期賣出
+  num? spotSellingRate;
 
   /// 兌換外幣金額
-  dynamic exchangeCost;
+  num? exchangeCost;
 
   CurrencytargetDtl(
       {this.dtlId = 0,
@@ -222,6 +223,17 @@ class CurrencytargetDtl {
     data['spotSellingRate'] = spotSellingRate;
     data['exchangeCost'] = exchangeCost;
     return data;
+  }
+
+  CurrencytargetDtl copyWith(CurrencytargetDtl dtlItem) {
+    return CurrencytargetDtl(
+        dtlId: dtlItem.dtlId,
+        exchangeDate: dtlItem.exchangeDate,
+        twCost: dtlItem.twCost,
+        exchangeRate: dtlItem.exchangeRate,
+        cashSellingRate: dtlItem.cashSellingRate,
+        spotSellingRate: dtlItem.spotSellingRate,
+        exchangeCost: dtlItem.exchangeCost);
   }
 }
 
@@ -251,6 +263,16 @@ class CurrencyStateNotifier extends StateNotifier<List<Currencytarget>> {
   }
 
   void change(Currencytarget setItem) {
+    state = state
+        .map((currencytarget) => currencytarget.groupID == setItem.groupID
+            ? currencytarget.copyWith(setItem)
+            : currencytarget)
+        .toList();
+    //print('state => gid: ${setItem.groupID}, name: ${setItem.groupName}');
+    saveToSharedPreferences();
+  }
+
+  void changeDtl(Currencytarget setItem) {
     state = state
         .map((currencytarget) => currencytarget.groupID == setItem.groupID
             ? currencytarget.copyWith(setItem)
@@ -303,3 +325,30 @@ final currencyTargetProvider =
 ///***********************************************************************
 ///                         CurrencyStateNotifier
 ///***********************************************************************
+class CurrencytargetDtlNotifier extends StateNotifier<List<CurrencytargetDtl>> {
+  CurrencytargetDtlNotifier() : super([]);
+
+  void addnote(CurrencytargetDtl setItem) {
+    state = [...state, setItem];
+    //print("===============> addnote");
+  }
+
+  void change(CurrencytargetDtl setItem) {
+    state = state
+        .map((currencytarget) => currencytarget.dtlId == setItem.dtlId
+            ? currencytarget.copyWith(setItem)
+            : currencytarget)
+        .toList();
+  }
+
+  void removenote(CurrencytargetDtl setItem) {
+    var newList = state.where((x) => x.dtlId != setItem.dtlId);
+    state = newList.toList();
+  }
+}
+
+final noteDataProvider =
+    StateNotifierProvider<CurrencytargetDtlNotifier, List<CurrencytargetDtl>>(
+        (ref) {
+  return CurrencytargetDtlNotifier();
+});

@@ -17,8 +17,10 @@ class TextFormFieldDouble extends StatefulWidget {
   /// 預設值
   final String textValue;
 
+  /// 焦點元件
   final FocusNode focusNode;
 
+  /// 控制元件
   final TextEditingController textEditingController;
 
   /// 當數值變更時回傳
@@ -45,6 +47,7 @@ class TextFormFieldDoubleState extends State<TextFormFieldDouble> {
   void initState() {
     super.initState();
 
+    // 焦點監聽
     widget.focusNode.addListener(() {
       if (!widget.focusNode.hasFocus) {
         String strNum =
@@ -63,6 +66,8 @@ class TextFormFieldDoubleState extends State<TextFormFieldDouble> {
 
   @override
   Widget build(BuildContext context) {
+    String strRegex = widget.decimalLength > 0 ? r'^\d+\.?\d{0,99}' : r'^\d+';
+
     return Expanded(
         child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,7 +80,7 @@ class TextFormFieldDoubleState extends State<TextFormFieldDouble> {
           controller: widget.textEditingController,
           //initialValue: widget.textValue,
           inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,99}')),
+            FilteringTextInputFormatter.allow(RegExp(strRegex)),
             NumberLengthFormatter(
                 decimalLength: widget.decimalLength,
                 integerLength: widget.integerLength),
@@ -153,4 +158,38 @@ class NumberLengthFormatter extends TextInputFormatter {
       selection: TextSelection.collapsed(offset: selectionIndex),
     );
   }
+}
+
+// 將輸入數字轉換為符合的位數
+num currentDecimalLength(String inputValue,
+    {int integerLength = 10, int decimalLength = 0}) {
+  num rt = 0;
+
+  // 整數部分
+  String beforePoint = '';
+  // 小數部分
+  String afterPoint = '';
+
+  // 取得整數/小數部分數字
+  if (inputValue.contains('.')) {
+    int pointIndex = inputValue.indexOf('.');
+    beforePoint = inputValue.substring(0, pointIndex);
+    afterPoint = inputValue.substring(pointIndex + 1, inputValue.length);
+
+    var tempBefPoint = int.tryParse(beforePoint);
+    var tempAftPoint = int.tryParse(afterPoint);
+
+    int intBefPoint = int.parse(tempBefPoint.toString());
+    int intAftPoint = int.parse(tempAftPoint.toString());
+
+    rt = intBefPoint;
+    if (intAftPoint > 0 && decimalLength > 0) {
+      rt += num.parse('0.$intAftPoint');
+    }
+  } else {
+    var tempValue = num.tryParse(inputValue);
+    rt = num.parse(tempValue.toString());
+  }
+
+  return rt;
 }
