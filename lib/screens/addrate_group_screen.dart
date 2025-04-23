@@ -444,7 +444,7 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
                       context, '提示訊息', strEditCheckMsg, '儲存', '取消');
 
                   if (active != null) {
-                    if (active as bool) {
+                    if (active) {
                       isPass = true;
                       //print('active: ${active.toString()}');
                     } else {

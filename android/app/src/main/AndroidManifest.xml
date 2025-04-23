@@ -2,7 +2,7 @@
     <application
         android:label="flutter_exchangeamountmanagement"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_currency_exchange">
         <activity
             android:name=".MainActivity"
             android:exported="true"

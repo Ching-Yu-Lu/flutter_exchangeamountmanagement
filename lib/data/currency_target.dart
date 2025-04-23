@@ -2,9 +2,9 @@
 
 import 'dart:convert';
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:number_precision/number_precision.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Currencytarget {
@@ -166,7 +166,8 @@ class Currencytarget {
     dynamic doubleAfterPoint = double.tryParse(('0.$afterPoint')) ?? 0.0;
 
     if (doubleAfterPoint > 0) {
-      dynamic curNum = NP.plus(intBeforePoint, doubleAfterPoint);
+      Decimal curNum = Decimal.parse(intBeforePoint.toString()) +
+          Decimal.parse(doubleAfterPoint);
       result = curNum.toString();
     } else {
       result = intBeforePoint.toString();
@@ -306,8 +307,7 @@ class CurrencyStateNotifier extends StateNotifier<List<Currencytarget>> {
               DateTime aDatetime = DateTime.parse(a.exchangeDate);
               DateTime bDatetime = DateTime.parse(b.exchangeDate);
               Duration differenceDate = bDatetime.difference(aDatetime);
-              print(
-                  'aDatetime: $aDatetime, bDatetime: $bDatetime, differenceDate: $differenceDate');
+              //print('aDatetime: $aDatetime, bDatetime: $bDatetime, differenceDate: $differenceDate');
               if (differenceDate.inDays < 0) {
                 return -1;
               } else if (differenceDate.inDays > 0) {

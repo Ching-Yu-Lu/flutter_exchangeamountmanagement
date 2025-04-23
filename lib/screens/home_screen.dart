@@ -153,11 +153,11 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                         children: [
                           Text(
                             '幣別',
-                            style: TextStyle(fontSize: 14),
+                            style: TextStyle(fontSize: 13),
                           ),
                           SizedBox(
                               width: 100,
-                              height: 51,
+                              height: 52,
                               child: DropdownButtonFormField(
                                 isExpanded: true, // 選項 Overflow 要開這個
                                 value: currencySelect,
