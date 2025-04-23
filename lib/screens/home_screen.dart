@@ -1,3 +1,4 @@
+import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_exchangeamountmanagement/data/currency_target.dart';
 import 'package:flutter_exchangeamountmanagement/data/exchange_rate.dart';
@@ -18,7 +19,7 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
   int pickerRangeDays = 720;
   DateTime selectedDateBeg = DateTime.now().add(const Duration(days: -30));
   DateTime selectedDateEnd = DateTime.now().add(const Duration(days: 30));
-  //late Future<List<FetchAndExtract>> futureDataList;
+  bool completeShowStatus = false;
 
   @override
   Widget build(BuildContext context) {
@@ -41,8 +42,48 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
     ];
     currencySelectListList.addAll(currencyRateDataList);
     // 群組資料
-    final List<Currencytarget> currencyTargetDataList =
-        ref.watch(currencyTargetProvider);
+    final currencyTargetDataList = ref.watch(currencyTargetProvider);
+
+    // 根據查詢條件顯示資料
+    final filteredTargetDataList = currencyTargetDataList.where((targetData) {
+      bool showYN = true;
+
+      // 顯示已完成 N
+      if (showYN && !completeShowStatus) {
+        showYN = targetData.isComplete();
+      }
+
+      // 非全選
+      if (showYN && currencySelect != 'All') {
+        showYN = targetData.currency == currencySelect;
+      }
+
+      // 查詢日期
+      String strselectBeg = formatDate(selectedDateBeg, [yyyy, '', mm, '', dd]);
+      int numselectBeg = int.parse(strselectBeg);
+
+      String strselectEnd = formatDate(selectedDateEnd, [yyyy, '', mm, '', dd]);
+      int numselectEnd = int.parse(strselectEnd);
+
+      // 列表日期
+      DateTime dataBeg = DateTime.parse(targetData.dateBeg);
+      String strDataBeg = formatDate(dataBeg, [yyyy, '', mm, '', dd]);
+      int numDataBeg = int.parse(strDataBeg);
+
+      DateTime dataEnd = DateTime.parse(targetData.dateEnd);
+      String strDataEnd = formatDate(dataEnd, [yyyy, '', mm, '', dd]);
+      int numDataEnd = int.parse(strDataEnd);
+
+      // 日期區間
+      if (showYN) {
+        showYN = ((numselectBeg <= numDataBeg && numselectEnd >= numDataBeg) ||
+            (numselectBeg <= numDataEnd && numselectEnd >= numDataEnd) ||
+            (numDataBeg <= numselectBeg && numDataEnd >= numselectBeg) ||
+            (numDataBeg <= numselectEnd && numDataEnd >= numselectEnd));
+      }
+
+      return showYN;
+    }).toList();
 
     // 兌換目標資料(未完成)
     final unCompletedList = currencyTargetDataList
@@ -115,34 +156,40 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                             style: TextStyle(fontSize: 14),
                           ),
                           SizedBox(
-                            width: 100,
-                            height: 51,
-                            child: DropdownButtonFormField(
-                              value: currencySelect,
-                              decoration: // rouned all borders
-                                  InputDecoration(
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                              width: 100,
+                              height: 51,
+                              child: DropdownButtonFormField(
+                                isExpanded: true, // 選項 Overflow 要開這個
+                                value: currencySelect,
+                                decoration: // rouned all borders
+                                    InputDecoration(
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
                                 ),
-                              ),
-                              items: currencySelectListList.map((item) {
-                                return DropdownMenuItem(
-                                  value: item.unitCurrency,
-                                  child: Text(item.unitCurrency),
-                                );
-                              }).toList(),
-                              onChanged: (v) {
-                                setState(() {
-                                  currencySelect = v as String;
-                                  //print('currencySelect => $currencySelect');
-                                });
-                                // wait 1 second
-                                /*Future.delayed(Duration(seconds: 1), () {
+                                items: currencySelectListList.map((item) {
+                                  String unitCurrencyName =
+                                      FetchAndExtract.currencyCodeToNameStatic(
+                                          item.unitCurrency);
+                                  return DropdownMenuItem(
+                                    value: item.unitCurrency,
+                                    child: Text(
+                                      unitCurrencyName,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  );
+                                }).toList(),
+                                onChanged: (v) {
+                                  setState(() {
+                                    currencySelect = v as String;
+                                    //print('currencySelect => $currencySelect');
+                                  });
+                                  // wait 1 second
+                                  /*Future.delayed(Duration(seconds: 1), () {
                                   setState(() {});
                                 });*/
-                              },
-                            ),
-                          )
+                                },
+                              ))
                         ],
                       ),
                       /* 查詢日期(起) */
@@ -167,6 +214,12 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                                   if (value != null) {
                                     setState(() {
                                       selectedDateBeg = value;
+
+                                      Duration difference = selectedDateBeg
+                                          .difference(selectedDateEnd);
+                                      if (difference.inSeconds > 0) {
+                                        selectedDateEnd = selectedDateBeg;
+                                      }
                                     });
                                     // wait 1 second
                                     Future.delayed(Duration(seconds: 1), () {
@@ -222,6 +275,12 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                                   if (value != null) {
                                     setState(() {
                                       selectedDateEnd = value;
+
+                                      Duration difference = selectedDateBeg
+                                          .difference(selectedDateEnd);
+                                      if (difference.inSeconds > 0) {
+                                        selectedDateEnd = selectedDateBeg;
+                                      }
                                     });
                                     // wait 1 second
                                     Future.delayed(Duration(seconds: 1), () {
@@ -245,7 +304,7 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 10, vertical: 15),
                                       child: Text(
-                                        '${selectedDateBeg.year}-${selectedDateBeg.month.toString().padLeft(2, '0')}-${selectedDateBeg.day.toString().padLeft(2, '0')}',
+                                        '${selectedDateEnd.year}-${selectedDateEnd.month.toString().padLeft(2, '0')}-${selectedDateEnd.day.toString().padLeft(2, '0')}',
                                         style: TextStyle(fontSize: 14),
                                       ),
                                     ),
@@ -290,13 +349,10 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                             fontSize: 15, fontWeight: FontWeight.bold),
                       ),
                       Switch(
-                          value: true, //widget.switchStatus,
+                          value: completeShowStatus,
                           onChanged: (v) {
                             setState(() {
-                              /*ref
-                                    .read(isShowAllProvider.notifier)
-                                    .toggle(!widget.switchStatus);*/
-                              //print("BuildSwitchState Change Stataus is: ${widget.switchStatus}");
+                              completeShowStatus = !completeShowStatus;
                             });
                           })
                     ],
@@ -306,9 +362,9 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             Expanded(
               child: ListView.builder(
-                itemCount: currencyTargetDataList.length,
+                itemCount: filteredTargetDataList.length,
                 itemBuilder: (context, index) {
-                  Currencytarget showItem = currencyTargetDataList[index];
+                  Currencytarget showItem = filteredTargetDataList[index];
 
                   /// 群組編號
                   int gid = showItem.groupID;
@@ -354,7 +410,7 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                                     const Text("目標金額: "),
                                     Flexible(
                                       child: Text(
-                                        "$totalCost/${Currencytarget.getThousandthsCost(showItem.targetTotalCost)} ($persent%) ${showItem.currency}",
+                                        "${Currencytarget.getThousandthsCost(totalCost)}/${Currencytarget.getThousandthsCost(showItem.targetTotalCost)} ($persent%) ${FetchAndExtract.currencyCodeToNameStatic('${showItem.currency}')}",
                                       ),
                                     ),
                                   ],

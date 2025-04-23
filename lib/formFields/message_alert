@@ -19,3 +19,28 @@ Future<void> showAlert(BuildContext context, String title, String content) {
     },
   );
 }
+
+Future<bool?> showCheckAlert(BuildContext context, String title, String content, String activeMsg, String cancelMsg) {
+  return showDialog<bool>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(title),
+        content: Text(content),
+        actions: <Widget>[
+          ElevatedButton(
+            child: Text(cancelMsg),
+            onPressed: () => Navigator.of(context).pop(false), // 關閉對話框
+          ),
+          ElevatedButton(
+            child: Text(activeMsg),
+            onPressed: () {
+              Navigator.of(context).pop(true);
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+

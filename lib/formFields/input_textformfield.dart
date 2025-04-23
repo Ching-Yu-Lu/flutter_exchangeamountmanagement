@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_exchangeamountmanagement/data/currency_target.dart';
+import 'package:number_precision/number_precision.dart';
 
 class TextFormFieldDouble extends StatefulWidget {
   /// 標題
@@ -184,7 +185,7 @@ num currentDecimalLength(String inputValue,
 
     rt = intBefPoint;
     if (intAftPoint > 0 && decimalLength > 0) {
-      rt += num.parse('0.$intAftPoint');
+      rt = NP.plus(intBefPoint, num.parse('0.$intAftPoint'));
     }
   } else {
     var tempValue = num.tryParse(inputValue);

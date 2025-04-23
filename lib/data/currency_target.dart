@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:number_precision/number_precision.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Currencytarget {
@@ -17,10 +18,10 @@ class Currencytarget {
   String? currency;
 
   /// 預定日期(起)，格式：yyyy-MM-dd
-  String? dateBeg;
+  late String dateBeg;
 
   /// 預定日期(迄)，格式：yyyy-MM-dd
-  String? dateEnd;
+  late String dateEnd;
 
   /// 預定總金額
   num targetTotalCost = 0;
@@ -32,8 +33,8 @@ class Currencytarget {
       {required this.groupID,
       this.groupName,
       this.currency,
-      this.dateBeg,
-      this.dateEnd,
+      required this.dateBeg,
+      required this.dateEnd,
       this.targetTotalCost = 0,
       this.currencytargetDtlList}) {
     currencytargetDtlList ??= <CurrencytargetDtl>[];
@@ -72,8 +73,8 @@ class Currencytarget {
       groupID: setItem.groupID,
       groupName: setItem.groupName ?? groupName,
       currency: setItem.currency ?? currency,
-      dateBeg: setItem.dateBeg ?? dateBeg,
-      dateEnd: setItem.dateEnd ?? dateEnd,
+      dateBeg: setItem.dateBeg,
+      dateEnd: setItem.dateEnd,
       targetTotalCost: setItem.targetTotalCost,
       currencytargetDtlList:
           setItem.currencytargetDtlList ?? currencytargetDtlList,
@@ -165,7 +166,7 @@ class Currencytarget {
     dynamic doubleAfterPoint = double.tryParse(('0.$afterPoint')) ?? 0.0;
 
     if (doubleAfterPoint > 0) {
-      dynamic curNum = intBeforePoint + doubleAfterPoint;
+      dynamic curNum = NP.plus(intBeforePoint, doubleAfterPoint);
       result = curNum.toString();
     } else {
       result = intBeforePoint.toString();
@@ -173,14 +174,22 @@ class Currencytarget {
 
     return result;
   }
+
+  /// 是否已超過目標金額
+  bool isComplete() {
+    num nowtotalCost = getTotalCost();
+    bool rt = nowtotalCost <= targetTotalCost;
+    return rt;
+  }
 }
 
+///明細資料
 class CurrencytargetDtl {
   /// 編號
-  int? dtlId;
+  late int dtlId;
 
   /// 兌換日期
-  String? exchangeDate;
+  late String exchangeDate;
 
   /// 台幣金額
   int? twCost;
@@ -199,7 +208,7 @@ class CurrencytargetDtl {
 
   CurrencytargetDtl(
       {this.dtlId = 0,
-      this.exchangeDate,
+      required this.exchangeDate,
       this.twCost,
       this.exchangeRate,
       this.cashSellingRate,
@@ -207,6 +216,7 @@ class CurrencytargetDtl {
       this.exchangeCost});
 
   CurrencytargetDtl.fromJson(Map<String, dynamic> json) {
+    dtlId = json['dtlId'];
     exchangeDate = json['exchangeDate'];
     twCost = json['twCost'];
     exchangeRate = json['exchangeRate'];
@@ -217,6 +227,7 @@ class CurrencytargetDtl {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
+    data['dtlId'] = dtlId;
     data['exchangeDate'] = exchangeDate;
     data['twCost'] = twCost;
     data['exchangeRate'] = exchangeRate;
@@ -271,35 +282,6 @@ class CurrencyStateNotifier extends StateNotifier<List<Currencytarget>> {
     //print('state => gid: ${setItem.groupID}, name: ${setItem.groupName}');
     saveToSharedPreferences();
   }
-/*
-  void changeDtl(Currencytarget setItem, CurrencytargetDtl dtlItem) {
-    
-
-    state = state
-        .map((currencytarget) => () {
-          return [];
-        })
-        .toList();
-    //print('state => gid: ${setItem.groupID}, name: ${setItem.groupName}');
-    saveToSharedPreferences();
-  }*/
-
-  /*void addMultiple(List<Currencytarget> currencytarget) {
-    state = [
-      ...state,
-      ...currencytarget,
-    ];
-    saveToSharedPreferences();
-  }*/
-
-  /*void toggle(int gid) {
-    state = state
-        .map((currencytarget) => currencytarget.groupID == gid
-            ? currencytarget.copyWith(isDone: !currencytarget.isDone)
-            : currencytarget)
-        .toList();
-    saveToSharedPreferences();
-  }*/
 
   void remove(int gid) {
     state =
@@ -307,15 +289,83 @@ class CurrencyStateNotifier extends StateNotifier<List<Currencytarget>> {
     saveToSharedPreferences();
   }
 
+  void addDtl(int gid, CurrencytargetDtl dtlItem) {
+    var newList = [...state];
+
+    for (int i = 0; i < newList.length; i++) {
+      if (newList[i].groupID == gid) {
+        newList[i].currencytargetDtlList?.add(dtlItem);
+        //print("===============> changeStatus, currencytargetDtlList Count...${newList[i].currencytargetDtlList?.length}.................");
+
+        if (newList[i].currencytargetDtlList != null) {
+          int listLength = newList[i].currencytargetDtlList!.length;
+          if (listLength > 1) {
+            newList[i].currencytargetDtlList!.sort((a, b) {
+              int rt = 0;
+
+              DateTime aDatetime = DateTime.parse(a.exchangeDate);
+              DateTime bDatetime = DateTime.parse(b.exchangeDate);
+              Duration differenceDate = bDatetime.difference(aDatetime);
+              print(
+                  'aDatetime: $aDatetime, bDatetime: $bDatetime, differenceDate: $differenceDate');
+              if (differenceDate.inDays < 0) {
+                return -1;
+              } else if (differenceDate.inDays > 0) {
+                return 1;
+              }
+
+              return rt;
+            });
+          }
+        }
+      }
+    }
+
+    state = newList;
+    saveToSharedPreferences();
+  }
+
+  void removeDtl(int gid, int dtlID) {
+    var newList = [...state];
+
+    int removeIndex = -1;
+    for (int i = 0; i < newList.length; i++) {
+      removeIndex = -1;
+
+      // 找到刪除資料對應的群組編號
+      if (newList[i].groupID == gid) {
+        List<CurrencytargetDtl> dtlList =
+            newList[i].currencytargetDtlList ?? [];
+
+        if (dtlList.isNotEmpty) {
+          for (int dtlI = 0; dtlI < dtlList.length; dtlI++) {
+            if (dtlList[dtlI].dtlId == dtlID) {
+              removeIndex = dtlI;
+              break;
+            }
+          }
+        }
+      }
+
+      if (removeIndex >= 0) {
+        newList[i].currencytargetDtlList?.removeAt(removeIndex);
+        break;
+      }
+    }
+
+    state = newList;
+    saveToSharedPreferences();
+  }
+
   /// 儲存資料到 SharedPreferences
   void saveToSharedPreferences() {
-    /*SharedPreferences.getInstance().then((prefs) {
+    SharedPreferences.getInstance().then((prefs) {
       // store the todolist as a json object to shared preferences
       List<String> currencytargetList = state.map((currencytarget) {
         return jsonEncode(currencytarget);
       }).toList();
       prefs.setStringList('currencytargetList', currencytargetList);
-    });*/
+    });
   }
 }
 
@@ -323,34 +373,3 @@ final currencyTargetProvider =
     StateNotifierProvider<CurrencyStateNotifier, List<Currencytarget>>(
   (ref) => CurrencyStateNotifier(),
 );
-
-///***********************************************************************
-///                         CurrencyStateNotifier
-///***********************************************************************
-class CurrencytargetDtlNotifier extends StateNotifier<List<CurrencytargetDtl>> {
-  CurrencytargetDtlNotifier() : super([]);
-
-  void addnote(CurrencytargetDtl setDtlItem) {
-    state = [...state, setDtlItem];
-    //print("===============> addnote");
-  }
-
-  void change(CurrencytargetDtl setDtlItem) {
-    state = state
-        .map((currencytarget) => currencytarget.dtlId == setDtlItem.dtlId
-            ? currencytarget.copyWith(setDtlItem)
-            : currencytarget)
-        .toList();
-  }
-
-  void removenote(int dtlId) {
-    var newList = state.where((x) => x.dtlId != dtlId);
-    state = newList.toList();
-  }
-}
-
-final currencytargetDtlProvider =
-    StateNotifierProvider<CurrencytargetDtlNotifier, List<CurrencytargetDtl>>(
-        (ref) {
-  return CurrencytargetDtlNotifier();
-});

@@ -37,6 +37,7 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
   DateTime selectedDateBeg = DateTime.now().add(const Duration(days: -30));
   DateTime selectedDateEnd = DateTime.now().add(const Duration(days: 30));
   num inputTargetTotalCost = 0;
+  List<CurrencytargetDtl> dtlList = <CurrencytargetDtl>[];
 
   // 目標金額(焦點/Value編輯)
   FocusNode focusNodeTargetCost = FocusNode();
@@ -54,15 +55,16 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
           inputGroupName = element.groupName ?? '';
           inputCurrency = element.currency ?? 'PleaseSelect';
 
-          String dateBeg = element.dateBeg ??
-              formatDate(selectedDateBeg, [yyyy, '-', mm, '-', dd]);
-          selectedDateBeg = DateTime.parse(dateBeg);
+          selectedDateBeg = DateTime.parse(element.dateBeg);
+          selectedDateEnd = DateTime.parse(element.dateEnd);
 
-          String dateEnd = element.dateEnd ??
-              formatDate(selectedDateEnd, [yyyy, '-', mm, '-', dd]);
-          selectedDateEnd = DateTime.parse(dateEnd);
+          //String dateEnd = formatDate(selectedDateEnd, [yyyy, '-', mm, '-', dd]);
 
           inputTargetTotalCost = element.targetTotalCost;
+
+          if (element.currencytargetDtlList != null) {
+            dtlList = element.currencytargetDtlList!;
+          }
         }
       }
     }
@@ -92,7 +94,7 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Group'),
+        title: const Text('設定目標'),
       ),
       body: Padding(
         padding: EdgeInsets.only(left: 15, right: 15),
@@ -383,38 +385,84 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
               '加入/修改',
               style: TextStyle(color: Colors.white, fontSize: 25),
             ),
-            onPressed: () {
-              setState(() {
-                String strMsg = '';
+            onPressed: () async {
+              String strMsg = '';
+              String strEditCheckMsg = '';
 
-                if (strMsg.isEmpty) {
-                  if (inputGroupName.isEmpty) {
-                    strMsg = '請輸入群組名稱';
+              if (strMsg.isEmpty) {
+                if (inputGroupName.isEmpty) {
+                  strMsg = '請輸入群組名稱';
+                }
+              }
+
+              if (strMsg.isEmpty) {
+                if (inputCurrency == 'PleaseSelect') {
+                  strMsg = '請選擇幣別';
+                }
+              }
+
+              if (strMsg.isEmpty) {
+                if (inputTargetTotalCost == 0) {
+                  strMsg = '請輸入目標金額';
+                }
+              }
+
+              if (strEditCheckMsg.isEmpty) {
+                // 編輯才會檢查
+                if (widget.groupID >= 0) {
+                  //檢查日期是否有已經新增的明細超過日期區間
+                  List<CurrencytargetDtl> chcekList = dtlList.where((element) {
+                    bool rt = false;
+                    DateTime dtlDate = DateTime.parse(element.exchangeDate);
+                    Duration differenceBeg =
+                        dtlDate.difference(selectedDateBeg);
+                    Duration differenceEnd =
+                        dtlDate.difference(selectedDateEnd);
+                    //print('dtlDate: $dtlDate');
+                    //print('selectedDateBeg: $selectedDateBeg, differenceBeg: ${differenceBeg.inDays}');
+                    //print('selectedDateEnd: $selectedDateEnd, differenceEnd: ${differenceEnd.inDays}');
+                    if (differenceBeg.inDays < 0 || differenceEnd.inDays > 0) {
+                      //print('Not in Range is true...');
+                      rt = true;
+                    }
+
+                    return rt;
+                  }).toList();
+
+                  if (chcekList.isNotEmpty) {
+                    strEditCheckMsg = '有兌換日期不再預定日期起訖時間內，請問是否繼續存入資料?';
                   }
                 }
+              }
 
-                if (strMsg.isEmpty) {
-                  if (inputCurrency == 'PleaseSelect') {
-                    strMsg = '請選擇幣別';
+              if (strMsg.isNotEmpty) {
+                showAlert(context, '提示訊息', strMsg);
+              } else {
+                bool isPass = false;
+                if (strEditCheckMsg.isNotEmpty) {
+                  var active = await showCheckAlert(
+                      context, '提示訊息', strEditCheckMsg, '儲存', '取消');
+
+                  if (active != null) {
+                    if (active as bool) {
+                      isPass = true;
+                      //print('active: ${active.toString()}');
+                    } else {
+                      //print('active => ${active.toString()}');
+                    }
                   }
-                }
-
-                if (strMsg.isEmpty) {
-                  if (inputTargetTotalCost == 0) {
-                    strMsg = '請輸入目標金額';
-                  }
-                }
-
-                if (strMsg.isNotEmpty) {
-                  showAlert(context, '提示訊息', strMsg);
                 } else {
+                  isPass = true;
+                }
+
+                if (isPass) {
                   int gid = 1;
 
-                  // 編輯
+                  // 編輯(取得目標編號)
                   if (widget.groupID >= 0) {
                     gid = widget.groupID;
                   }
-                  // 新增
+                  // 新增(設定目標編號)
                   else {
                     int listLength = 0;
                     if (widget.currencyTargetList.isNotEmpty) {
@@ -429,29 +477,32 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
                     }
                   }
 
+                  // 組合資料
                   Currencytarget addItem = Currencytarget(
-                    groupID: gid,
-                    groupName: inputGroupName,
-                    currency: inputCurrency,
-                    dateBeg:
-                        formatDate(selectedDateBeg, [yyyy, '-', mm, '-', dd]),
-                    dateEnd:
-                        formatDate(selectedDateEnd, [yyyy, '-', mm, '-', dd]),
-                    targetTotalCost: inputTargetTotalCost,
-                  );
+                      groupID: gid,
+                      groupName: inputGroupName,
+                      currency: inputCurrency,
+                      dateBeg:
+                          formatDate(selectedDateBeg, [yyyy, '-', mm, '-', dd]),
+                      dateEnd:
+                          formatDate(selectedDateEnd, [yyyy, '-', mm, '-', dd]),
+                      targetTotalCost: inputTargetTotalCost,
+                      currencytargetDtlList: dtlList);
                   //print('addItem => groupName:${addItem.groupName}, currency:${addItem.currency}, dateBeg:${addItem.dateBeg}, dateEnd:${addItem.dateEnd}, targetTotalCost:${addItem.targetTotalCost}');
 
-                  if (widget.groupID >= 0) {
-                    ref.read(currencyTargetProvider.notifier).change(addItem);
-                  } else {
-                    ref.read(currencyTargetProvider.notifier).add(addItem);
-                  }
+                  setState(() {
+                    if (widget.groupID >= 0) {
+                      ref.read(currencyTargetProvider.notifier).change(addItem);
+                    } else {
+                      ref.read(currencyTargetProvider.notifier).add(addItem);
+                    }
 
-                  // 返回上一頁
-                  //Navigator.of(context).pop(true);
-                  Navigator.pop(context);
+                    // 返回上一頁
+                    //Navigator.of(context).pop(true);
+                    Navigator.pop(context);
+                  });
                 }
-              });
+              }
             },
           ),
         ),

@@ -15,6 +15,14 @@ dependencies:
   shared_preferences: ^2.5.3
   date_format: ^2.0.9
   intl: ^0.20.2
+  # 浮點數精確計算 https://juejin.cn/post/6950265337703039012
+  # NP.strip(num)         // 将浮点数矫正为正确的小数
+  # NP.plus(num1, num2, [num3, ...])   // 加法, num + num2 + num3, 第一二参数为必选项
+  # NP.minus(num1, num2, [num3, ...])  // 减法, num1 - num2 - num3
+  # NP.times(num1, num2, [num3, ...])  // 乘法, num1 * num2 * num3
+  # NP.divide(num1, num2, [num3, ...]) // 除法, num1 / num2 / num3
+  # NP.round(num, ratio)  // 保留ratio位小数
+  number_precision: ^2.0.2+1
 
 dev_dependencies:
   flutter_test:

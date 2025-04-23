@@ -1,3 +1,4 @@
+import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_exchangeamountmanagement/data/currency_target.dart';
 import 'package:flutter_exchangeamountmanagement/data/exchange_rate.dart';
@@ -8,9 +9,6 @@ class ModifygroupcontentdtlScreen extends ConsumerStatefulWidget {
   /// 群組編號
   final int groupID;
 
-  /// 明細編號
-  final int dtlID;
-
   /// 幣別匯率列表
   final List<FetchAndExtract> currencyRateList;
 
@@ -20,7 +18,6 @@ class ModifygroupcontentdtlScreen extends ConsumerStatefulWidget {
   const ModifygroupcontentdtlScreen(
       {super.key,
       required this.groupID,
-      required this.dtlID,
       required this.currencyRateList,
       required this.currencyTargetList});
 
@@ -31,11 +28,12 @@ class ModifygroupcontentdtlScreen extends ConsumerStatefulWidget {
 
 class ModifygroupcontentScreendtlState
     extends ConsumerState<ModifygroupcontentdtlScreen> {
-  int pickerRangeDays = 720;
+  int pickerRangeDaysBef = 720;
+  int pickerRangeDaysAft = 720;
 
   // 輸入資料
-  DateTime addDate = DateTime.now().add(const Duration(days: -30));
-  num twCost = 0;
+  DateTime addDate = DateTime.now();
+  int twCost = 0;
   num costRate = 0;
   num curCost = 0;
 
@@ -72,6 +70,31 @@ class ModifygroupcontentScreendtlState
         costRate = defaultFetch.spotSellingRate;
       }
 
+      // 取可選擇範圍起訖
+      DateTime rBeg = DateTime.parse(defaultData.dateBeg);
+      DateTime rEnd = DateTime.parse(defaultData.dateEnd);
+      DateTime timeNow = DateTime.now();
+      Duration differenceBeg = rBeg.difference(timeNow);
+      Duration differenceEnd = rEnd.difference(timeNow);
+      pickerRangeDaysBef = differenceBeg.inDays;
+      pickerRangeDaysAft = differenceEnd.inDays + 1;
+
+      int rIntBeg = rBeg.year * 10000 + rBeg.month * 100 + rBeg.day;
+      int rIntEnd = rEnd.year * 10000 + rEnd.month * 100 + rEnd.day;
+      int intTimeNow = timeNow.year * 10000 + timeNow.month * 100 + timeNow.day;
+      //print('rIntBeg: $rIntBeg, rIntEnd: $rIntEnd, intTimeNow: $intTimeNow 00:00:00');
+      if (intTimeNow >= rIntBeg && intTimeNow <= rIntEnd) {
+        //print('${timeNow.year}-${timeNow.month}-${timeNow.day}');
+        addDate = DateTime(timeNow.year, timeNow.month, timeNow.day);
+      } else {
+        //double dblRangeDays = (pickerRangeDaysBef + pickerRangeDaysAft) / 2;
+        //int intRangeDays = int.parse(dblRangeDays.toString());
+        addDate = DateTime.now().add(Duration(days: pickerRangeDaysAft));
+      }
+
+      //print('rBeg: $rBeg, pickerRangeDaysBef: $pickerRangeDaysBef');
+      //print('rEnd: $rEnd, pickerRangeDaysAft: $pickerRangeDaysAft');
+
       // 初始化幣別資料
       currencyCode = defaultFetch.unitCurrency;
       currencyCodeToName = defaultFetch.currencyCodeToName();
@@ -90,7 +113,7 @@ class ModifygroupcontentScreendtlState
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
-              child: Text('DTL Add'),
+              child: Text('兌換資料設定'),
             ),
           ],
         ),
@@ -113,9 +136,9 @@ class ModifygroupcontentScreendtlState
                           context: context,
                           initialDate: addDate,
                           firstDate: DateTime.now()
-                              .add(Duration(days: -pickerRangeDays)),
+                              .add(Duration(days: pickerRangeDaysBef)),
                           lastDate: DateTime.now()
-                              .add(Duration(days: pickerRangeDays)),
+                              .add(Duration(days: pickerRangeDaysAft)),
                         ).then((value) {
                           if (value != null) {
                             setState(() {
@@ -167,23 +190,29 @@ class ModifygroupcontentScreendtlState
                   textEditingController: twCostController,
                   onChanged: (val) {
                     setState(() {
-                      twCost = val.isEmpty ? 0 : double.parse(val);
+                      // 台幣金額
+                      num tempTwCost =
+                          currentDecimalLength(val, decimalLength: 0);
+                      twCost = int.parse(tempTwCost.toString());
                       //print('onChanged textValue: $inputTargetTotalCost');
+
+                      // 計算外幣金額
                       curCost =
                           computingCurCost(currencyCode, twCost, costRate);
-                      //print('onChanged curCost: $curCost');
                       curCostController.text =
                           Currencytarget.currentNumber(curCost.toString());
                     });
                   },
                   onSaved: (val) {
                     setState(() {
-                      twCost = val.isEmpty ? 0 : double.parse(val);
+                      // 台幣金額
+                      twCost = val.isEmpty ? 0 : int.parse(val);
                       twCostController.value = TextEditingValue(text: val);
                       //print('onSaved textValue: $inputTargetTotalCost');
+
+                      // 計算外幣金額
                       curCost =
                           computingCurCost(currencyCode, twCost, costRate);
-                      //print('onSaved curCost: $curCost');
                       curCostController.text =
                           Currencytarget.currentNumber(curCost.toString());
                     });
@@ -247,13 +276,19 @@ class ModifygroupcontentScreendtlState
                   textEditingController: curCostController,
                   onChanged: (val) {
                     setState(() {
-                      curCost = val.isEmpty ? 0 : double.parse(val);
+                      num tempCurCost = currentDecimalLength(val,
+                          decimalLength: FetchAndExtract.currencyDecimalPlaces(
+                              currencyCode));
+                      curCost = num.parse(tempCurCost.toString());
                       //print('onChanged textValue: $inputTargetTotalCost');
                     });
                   },
                   onSaved: (val) {
                     setState(() {
-                      curCost = val.isEmpty ? 0 : double.parse(val);
+                      num tempCurCost = currentDecimalLength(val,
+                          decimalLength: FetchAndExtract.currencyDecimalPlaces(
+                              currencyCode));
+                      curCost = num.parse(tempCurCost.toString());
                       curCostController.value = TextEditingValue(text: val);
                       //print('onSaved textValue: $inputTargetTotalCost');
                     });
@@ -281,7 +316,48 @@ class ModifygroupcontentScreendtlState
               '加入',
               style: TextStyle(color: Colors.white, fontSize: 25),
             ),
-            onPressed: () {},
+            onPressed: () {
+              // 新增
+              int setDtlID = 1;
+              int listLength = 0;
+              if (widget.currencyTargetList.isNotEmpty) {
+                Currencytarget lastItem = widget.currencyTargetList
+                    .firstWhere((element) => element.groupID == widget.groupID);
+
+                List<CurrencytargetDtl> subList =
+                    lastItem.currencytargetDtlList ?? [];
+
+                if (subList.isNotEmpty) {
+                  CurrencytargetDtl lastDtlItem = subList.reduce(
+                      (item1, item2) =>
+                          item1.dtlId > item2.dtlId ? item1 : item2);
+                  listLength = lastDtlItem.dtlId;
+
+                  if (listLength > 0) {
+                    setDtlID = listLength + 1;
+                  }
+                }
+              }
+
+              /// 目標幣別資料
+              FetchAndExtract defaultFetch = widget.currencyRateList.firstWhere(
+                  (element) => element.unitCurrency == currencyCode);
+
+              CurrencytargetDtl dtlItem = CurrencytargetDtl(
+                  dtlId: setDtlID,
+                  exchangeDate: formatDate(addDate, [yyyy, '-', mm, '-', dd]),
+                  twCost: twCost,
+                  exchangeCost: curCost,
+                  cashSellingRate: defaultFetch.cashSellingRate,
+                  spotSellingRate: defaultFetch.spotSellingRate,
+                  exchangeRate: costRate);
+              ref
+                  .read(currencyTargetProvider.notifier)
+                  .addDtl(widget.groupID, dtlItem);
+
+              // 返回上一頁
+              Navigator.pop(context);
+            },
           ),
         ),
       ),

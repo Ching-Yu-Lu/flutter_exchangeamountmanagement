@@ -200,6 +200,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.15.0"
+  number_precision:
+    dependency: "direct main"
+    description:
+      name: number_precision
+      sha256: "397639f584cdd4fb5965e3b91c03b911b0c8fa9c5be7e7236bbf102bf6f75681"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.2+1"
   path:
     dependency: transitive
     description:
