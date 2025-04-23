@@ -102,11 +102,12 @@ class ModifygroupcontentScreenState
                       SizedBox(
                         height: 20,
                         child: Text(
-                            "目標金額: ${Currencytarget.getThousandthsCost(totalCost)}/${Currencytarget.getThousandthsCost(showData.targetTotalCost)} ($persent%) ${showData.currency}"),
+                            "目標金額: ${Currencytarget.getThousandthsCost(totalCost)}/${Currencytarget.getThousandthsCost(showData.targetTotalCost)} ($persent%) ${FetchAndExtract.currencyCodeToNameStatic('${showData.currency}')}"),
                       ),
                       SizedBox(
                         height: 20,
-                        child: Text("已兌換金額: ${showData.getTwTotalCost()} TWD"),
+                        child: Text(
+                            "已兌換金額: ${showData.getTwTotalCost()} ${FetchAndExtract.currencyCodeToNameStatic('TWD')}"),
                       ),
                     ],
                   )),
@@ -125,7 +126,6 @@ class ModifygroupcontentScreenState
                         MaterialPageRoute(
                           builder: (context) => ModifygroupcontentdtlScreen(
                               groupID: widget.groupID,
-                              dtlID: 0,
                               currencyRateList: widget.currencyRateList,
                               currencyTargetList:
                                   currencyTargetDataList /*widget.currencyTargetList*/),
@@ -140,38 +140,51 @@ class ModifygroupcontentScreenState
               child: ListView.builder(
                 itemCount: showData.currencytargetDtlList!.length,
                 itemBuilder: (context, index) {
-                  //CurrencytargetDtl dtlItem = showData.currencytargetDtlList![index];
+                  CurrencytargetDtl dtlItem =
+                      showData.currencytargetDtlList![index];
 
                   return ListTile(
                       title: Text(
-                        "兌換日期 2025-01-02",
+                        "兌換日期: ${dtlItem.exchangeDate}",
                         style: TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 18),
                       ),
                       subtitle: Column(
                         children: [
+                          /*Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text("ID: ${dtlItem.dtlId}"),
+                            ],
+                          ), // */
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text("當日匯率: 0.20"),
+                              Text("當日匯率: ${dtlItem.exchangeRate}"),
                             ],
                           ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text("兌換金額: 100 TWD"),
+                              Text(
+                                  "兌換金額: ${dtlItem.twCost} ${FetchAndExtract.currencyCodeToNameStatic('TWD')}"),
                             ],
                           ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text("外幣金額: 500 JPY"),
+                              Text(
+                                  "外幣金額: ${dtlItem.exchangeCost} ${FetchAndExtract.currencyCodeToNameStatic(showData.currency ?? '')}"),
                             ],
                           ),
                         ],
                       ),
                       trailing: IconButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            ref
+                                .read(currencyTargetProvider.notifier)
+                                .removeDtl(widget.groupID, dtlItem.dtlId);
+                          },
                           icon: Icon(
                             Icons.delete,
                             size: 20,
