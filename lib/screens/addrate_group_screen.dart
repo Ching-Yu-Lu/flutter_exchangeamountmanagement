@@ -143,7 +143,7 @@ class AddrategroupScreenState extends ConsumerState<AddrategroupScreen> {
                             fontWeight: FontWeight.bold,
                             color: Colors.grey)),
                     SizedBox(
-                      height: 51,
+                      height: 53,
                       child: widget.groupID < 0
                           ? DropdownButtonFormField(
                               value: inputCurrency,

@@ -135,7 +135,11 @@ class Currencytarget {
           result = '$intBeforePoint.$afterPoint';
         }
       } else {
-        result = formatter.format(intBeforePoint);
+        if (intBeforePoint >= 1000) {
+          result = formatter.format(intBeforePoint);
+        } else {
+          result = '$intBeforePoint';
+        }
       }
     }
     return result;
@@ -163,11 +167,11 @@ class Currencytarget {
     int intBeforePoint = int.tryParse(beforePoint) ?? 0;
 
     // 小數
-    dynamic doubleAfterPoint = double.tryParse(('0.$afterPoint')) ?? 0.0;
+    double doubleAfterPoint = double.tryParse(('0.$afterPoint')) ?? 0.0;
 
     if (doubleAfterPoint > 0) {
       Decimal curNum = Decimal.parse(intBeforePoint.toString()) +
-          Decimal.parse(doubleAfterPoint);
+          Decimal.parse(doubleAfterPoint.toString());
       result = curNum.toString();
     } else {
       result = intBeforePoint.toString();

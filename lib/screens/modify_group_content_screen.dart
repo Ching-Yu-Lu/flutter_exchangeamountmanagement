@@ -52,31 +52,40 @@ class ModifygroupcontentScreenState
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(child: Text('${showData.groupName}')),
-            IconButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => AddrategroupScreen(
-                          groupID: widget.groupID,
-                          currencyRateList: widget.currencyRateList,
-                          currencyTargetList:
-                              currencyTargetDataList /*widget.currencyTargetList*/),
+            /* 修改目標 */
+            Stack(
+              children: [
+                SizedBox(
+                  height: 50,
+                  child: IconButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => AddrategroupScreen(
+                                groupID: widget.groupID,
+                                currencyRateList: widget.currencyRateList,
+                                currencyTargetList:
+                                    currencyTargetDataList /*widget.currencyTargetList*/),
+                          ),
+                        );
+                      },
+                      icon: Icon(Icons.edit)),
+                ),
+                Positioned(
+                  bottom: 1,
+                  right: 4,
+                  child: SizedBox(
+                    height: 15,
+                    child: Text(
+                      "修改目標",
+                      style: TextStyle(
+                          fontSize: 10,
+                          color: const Color.fromARGB(255, 94, 91, 91)),
                     ),
-                  );
-                },
-                icon: Icon(Icons
-                    .edit)) /*,
-            IconButton(
-                onPressed: () {
-                  setState(() {
-                    // 刪除資料
-                    ref
-                        .read(currencyTargetProvider.notifier)
-                        .remove(showData.groupID ?? 0);
-                    Navigator.of(context).pop();
-                  });
-                },
-                icon: Icon(Icons.delete_forever))*/
+                  ),
+                )
+              ],
+            )
           ],
         ),
       ),
@@ -120,19 +129,38 @@ class ModifygroupcontentScreenState
                 Expanded(
                   child: Divider(),
                 ),
-                IconButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => ModifygroupcontentdtlScreen(
-                              groupID: widget.groupID,
-                              currencyRateList: widget.currencyRateList,
-                              currencyTargetList:
-                                  currencyTargetDataList /*widget.currencyTargetList*/),
+                Stack(
+                  children: [
+                    SizedBox(
+                        height: 45,
+                        child: IconButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => ModifygroupcontentdtlScreen(
+                                      groupID: widget.groupID,
+                                      currencyRateList: widget.currencyRateList,
+                                      currencyTargetList:
+                                          currencyTargetDataList /*widget.currencyTargetList*/),
+                                ),
+                              );
+                            },
+                            icon: Icon(Icons.playlist_add))),
+                    Positioned(
+                      bottom: 1,
+                      right: 4,
+                      child: SizedBox(
+                        height: 15,
+                        child: Text(
+                          "新增明細",
+                          style: TextStyle(
+                              fontSize: 10,
+                              color: const Color.fromARGB(255, 94, 91, 91)),
                         ),
-                      );
-                    },
-                    icon: Icon(Icons.playlist_add))
+                      ),
+                    )
+                  ],
+                )
               ],
             ),
             /* 明細列表 */

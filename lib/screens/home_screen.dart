@@ -5,6 +5,7 @@ import 'package:flutter_exchangeamountmanagement/data/exchange_rate.dart';
 import 'package:flutter_exchangeamountmanagement/screens/addrate_group_screen.dart';
 import 'package:flutter_exchangeamountmanagement/screens/exchange_rate_screen.dart';
 import 'package:flutter_exchangeamountmanagement/screens/modify_group_content_screen.dart';
+import 'package:flutter_launcher_icons/xml_templates.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -92,9 +93,10 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
         appBar: AppBar(
-            toolbarHeight: 150,
+            toolbarHeight: 160,
             title: Column(
               children: [
+                /* Title */
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -104,39 +106,82 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                       style:
                           TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
                     )),
+                    /* 按鈕(今日匯率，目標新增) */
                     Row(
                       children: [
                         /* 兌換倍率資料頁面按鈕 */
-                        IconButton(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => ExchangerateScreen(
-                                      futureList: currencyRateDataList),
+                        Stack(
+                          children: [
+                            SizedBox(
+                                height: 60,
+                                child: IconButton(
+                                    onPressed: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              ExchangerateScreen(
+                                                  futureList:
+                                                      currencyRateDataList),
+                                        ),
+                                      );
+                                    },
+                                    icon: Icon(
+                                      Icons.currency_exchange,
+                                      size: 28,
+                                    ))),
+                            Positioned(
+                              bottom: 1,
+                              right: 4,
+                              child: SizedBox(
+                                height: 15,
+                                child: Text(
+                                  "今日匯率",
+                                  style: TextStyle(
+                                      fontSize: 10,
+                                      color: const Color.fromARGB(
+                                          255, 94, 91, 91)),
                                 ),
-                              );
-                            },
-                            icon: Icon(
-                              Icons.currency_exchange,
-                              size: 28,
-                            )),
+                              ),
+                            )
+                          ],
+                        ),
                         SizedBox(width: 10),
                         /* 群組新增頁面按鈕 */
-                        IconButton(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => AddrategroupScreen(
-                                      currencyRateList: currencyRateDataList,
-                                      currencyTargetList:
-                                          currencyTargetDataList),
-                                ),
-                              );
-                            },
-                            icon: Icon(
-                              Icons.add_to_photos,
-                              size: 28,
-                            )),
+                        Stack(children: [
+                          SizedBox(
+                            height: 60,
+                            child: IconButton(
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => AddrategroupScreen(
+                                          currencyRateList:
+                                              currencyRateDataList,
+                                          currencyTargetList:
+                                              currencyTargetDataList),
+                                    ),
+                                  );
+                                },
+                                icon: Icon(
+                                  Icons.add_to_photos,
+                                  size: 28,
+                                )),
+                          ),
+                          Positioned(
+                            bottom: 1,
+                            right: 3,
+                            child: SizedBox(
+                              height: 15,
+                              child: Text(
+                                "新增目標",
+                                style: TextStyle(
+                                    fontSize: 10,
+                                    color:
+                                        const Color.fromARGB(255, 94, 91, 91)),
+                              ),
+                            ),
+                          )
+                        ])
                       ],
                     )
                   ],
@@ -389,7 +434,8 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  "ID: ${showItem.groupID},名稱: ${showItem.groupName}",
+                                  //"ID: ${showItem.groupID},名稱: ${showItem.groupName}",
+                                  "名稱: ${showItem.groupName}",
                                   style: const TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold),

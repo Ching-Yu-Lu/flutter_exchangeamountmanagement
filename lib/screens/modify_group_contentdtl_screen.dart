@@ -193,12 +193,14 @@ class ModifygroupcontentScreendtlState
                       // 台幣金額
                       num tempTwCost =
                           currentDecimalLength(val, decimalLength: 0);
+                      //print('onChanged tempTwCost: $tempTwCost');
                       twCost = int.parse(tempTwCost.toString());
-                      //print('onChanged textValue: $inputTargetTotalCost');
+                      //print('onChanged twCost: $twCost');
 
                       // 計算外幣金額
                       curCost =
                           computingCurCost(currencyCode, twCost, costRate);
+                      //print('onChanged curCost: $curCost');
                       curCostController.text =
                           Currencytarget.currentNumber(curCost.toString());
                     });
