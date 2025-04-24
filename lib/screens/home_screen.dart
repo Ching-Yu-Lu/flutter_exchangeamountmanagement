@@ -5,7 +5,6 @@ import 'package:flutter_exchangeamountmanagement/data/exchange_rate.dart';
 import 'package:flutter_exchangeamountmanagement/screens/addrate_group_screen.dart';
 import 'package:flutter_exchangeamountmanagement/screens/exchange_rate_screen.dart';
 import 'package:flutter_exchangeamountmanagement/screens/modify_group_content_screen.dart';
-import 'package:flutter_launcher_icons/xml_templates.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
