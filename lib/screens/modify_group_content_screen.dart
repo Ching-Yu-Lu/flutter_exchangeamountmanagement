@@ -56,6 +56,7 @@ class ModifygroupcontentScreenState
             Stack(
               children: [
                 SizedBox(
+                  width: 50,
                   height: 50,
                   child: IconButton(
                       onPressed: () {
@@ -132,6 +133,7 @@ class ModifygroupcontentScreenState
                 Stack(
                   children: [
                     SizedBox(
+                        width: 50,
                         height: 45,
                         child: IconButton(
                             onPressed: () {
@@ -148,7 +150,7 @@ class ModifygroupcontentScreenState
                             icon: Icon(Icons.playlist_add))),
                     Positioned(
                       bottom: 1,
-                      right: 4,
+                      right: 6,
                       child: SizedBox(
                         height: 15,
                         child: Text(
